@@ -1,0 +1,81 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,100,300,500);
+@import "Pointer";
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.0);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #C5C5C5;
+    border-radius: 5px;
+}
+
+body {
+    top: 0px !important;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+
+    /*
+     Introduced in Internet Explorer 10.
+     See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+   */
+    -ms-user-select: none;
+    user-select: none;
+
+    cursor: url($pointer), auto;
+}
+
+a,
+button,
+button > img,
+input[type="date"],
+.MuiChip-root,
+select,
+span.MuiBadge-root>.MuiSvgIcon-root,
+.MuiSvgIcon-root>path,
+[class*="makeStyles-btnCount-"],
+[class*="makeStyles-btnNotSelected-"],
+[class*="makeStyles-btnSelected-"],
+[class*="makeStyles-btnReloadMapDisable-"],
+[class*="makeStyles-btnReloadMap-"],
+.MuiButtonBase-root,
+.MuiSvgIcon-root  {
+    cursor: url($pointerHover), auto !important;
+}
+
+.goog-logo-link {
+    display: none !important;
+}
+
+.goog-te-gadget {
+    color: transparent !important;
+}
+
+.goog-te-gadget .goog-te-combo {
+    color: #006E4E !important;
+}
+
+.goog-te-combo {
+    width: 50px;
+    position: absolute;
+    top: -5px;
+}
+
+.goog-tooltip {
+    display: none !important;
+}
+
+.goog-tooltip:hover {
+    display: none !important;
+}
+
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
