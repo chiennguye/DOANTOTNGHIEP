@@ -1,3 +1,4 @@
+ HEAD
 ## Drip&Chill
 ---
 Email: ucb18701@eoopy.com  
@@ -25,3 +26,4 @@ delete node_modules
 delete yarn.lock  
 yarn install  
 $env:NODE_OPTIONS="--openssl-legacy-provider" ; npm start
+
