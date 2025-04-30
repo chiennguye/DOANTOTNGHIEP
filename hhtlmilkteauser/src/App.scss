@@ -1,5 +1,5 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,100,300,500);
-@import "Pointer";
+// @import "Pointer";
 
 ::-webkit-scrollbar {
     width: 10px;
@@ -27,7 +27,7 @@ body {
     -ms-user-select: none;
     user-select: none;
 
-    cursor: url($pointer), auto;
+    // cursor: url($pointer), auto;
 }
 
 a,
@@ -45,7 +45,7 @@ span.MuiBadge-root>.MuiSvgIcon-root,
 [class*="makeStyles-btnReloadMap-"],
 .MuiButtonBase-root,
 .MuiSvgIcon-root  {
-    cursor: url($pointerHover), auto !important;
+    // cursor: url($pointerHover), auto !important;
 }
 
 .goog-logo-link {

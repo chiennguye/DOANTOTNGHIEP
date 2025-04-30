@@ -22,8 +22,6 @@ Mật khẩu OTP:123456
 
 ---
 Fix: caniuse-lite  
-delete node_modules  
-delete yarn.lock  
-yarn install  
+npm install --legacy-peer-deps
 $env:NODE_OPTIONS="--openssl-legacy-provider" ; npm start
 
