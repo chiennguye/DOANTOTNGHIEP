@@ -2,7 +2,7 @@ import api from "./../common/APIClient";
 
 class OrderService {
     listProcess = (query) => {
-        return api.get("/order/listProcess", { params: query });
+        return api.get("/shipper/orders", { params: query });
     };
 
     listSuccess = (query) => {

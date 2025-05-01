@@ -37,4 +37,6 @@ public interface IOrderRepository extends JpaRepository<Order, String> {
     List<Order> lastFiveOrders();
 
     Order findByIdEquals(String id);
+
+    Page<Order> findByStatus(int status, Pageable pageable);
 }

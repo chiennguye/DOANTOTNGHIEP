@@ -24,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Date;
 import java.util.HashSet;
@@ -157,6 +158,16 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        String jwt = jwtUtils.parseJwt(request);
+        if (jwt != null) {
+            jwtUtils.invalidateToken(jwt);
+            SecurityContextHolder.clearContext();
+        }
+        return ResponseEntity.ok(new MessageResponse("Đăng xuất thành công"));
     }
 
 }

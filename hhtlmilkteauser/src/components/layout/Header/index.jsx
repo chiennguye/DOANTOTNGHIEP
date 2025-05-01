@@ -37,7 +37,6 @@ import {
 import FavoriteIcon from "@material-ui/icons/Favorite";
 import Notification from "../../../common/Notification";
 import ClearIcon from "@material-ui/icons/Clear";
-import GroupAddIcon from "@material-ui/icons/GroupAdd";
 import { Add, DeleteOutline, Remove } from "@material-ui/icons";
 import {
   GroupOrderFindAllAction,
@@ -46,9 +45,7 @@ import {
   GroupOrderDeleteGroupMembersAction,
   GroupOrderUpdateQuantity,
   GroupOrderDetailsDelete,
-  GroupOrderSaveStateAction,
 } from "./../../../store/actions/GroupOrderAction";
-import { Client } from "@stomp/stompjs";
 import Modal from "@material-ui/core/Modal";
 import TextField from "@material-ui/core/TextField";
 import { getRatings } from "../../../store/actions/RatingAction";
@@ -187,8 +184,6 @@ const StyledBadge = withStyles((theme) => ({
   },
 }))(Badge);
 
-const SOCKET_URL = "ws://localhost:8080/ws/group-order";
-
 const Header = ({ isOpen, onHandleOpen }) => {
   const history = useHistory();
   const classes = useStyles();
@@ -204,7 +199,6 @@ const Header = ({ isOpen, onHandleOpen }) => {
   const { customer, wishlist } = useSelector((state) => state.customer);
   const { order, quantity } = useSelector((state) => state.order);
   const { shortUrl } = useSelector((state) => state.groupOrder);
-  // const [dataGroupOrderDetails, setDataGroupOrderDetails] = useState({});
   const { dataGroupOrderDetails } = useSelector((state) => state.groupOrder);
 
   const [open, setOpen] = React.useState(false);
@@ -287,32 +281,6 @@ const Header = ({ isOpen, onHandleOpen }) => {
         const orderID = groupMember?.orderID;
         GroupOrderFindAllAction({ username, type, orderID })(dispatch);
       }
-
-      let onConnected = () => {
-        console.log("Connected!!");
-
-        let wsUsername = `${auth?.user?.username}/data`;
-
-        if (localStorage.getItem("member")) {
-          wsUsername = `${JSON.parse(localStorage.getItem("groupMember"))?.username
-            }/data`;
-        }
-
-        const client = new Client({
-          brokerURL: SOCKET_URL,
-          reconnectDelay: 10000,
-          heartbeatIncoming: 4000,
-          heartbeatOutgoing: 4000,
-          onConnect: onConnected,
-          onDisconnect: onDisconnected,
-        });
-
-        client.activate();
-      };
-
-      let onDisconnected = () => {
-        console.log("Disconnected!");
-      };
     }, 500);
   }, [auth.token, auth?.user?.username, dispatch]);
 
@@ -439,50 +407,6 @@ const Header = ({ isOpen, onHandleOpen }) => {
     </div>
   );
 
-  // useEffect(() => {
-  //   const username = auth?.user?.username;
-  //   const type = "team";
-  //   const orderID = order?.id;
-  //   GroupOrderFindAllAction({ username, type, orderID })(dispatch);
-  // }, [auth?.user?.username, dispatch, order?.id]);
-
-  const handleDrawerOpenGroup = () => {
-    const groupMember = JSON.parse(localStorage.getItem("groupMember"));
-
-    if (
-      auth?.user?.token ||
-      (Object.is(groupMember?.type, "team") &&
-        !Object.is(localStorage.getItem("member"), null) &&
-        dataGroupOrderDetails?.groupOrderInfoResponses.findIndex(
-          (a) => a.username === localStorage.getItem("member")
-        ) !== -1)
-    ) {
-      if (
-        order?.id ||
-        (groupMember?.orderID &&
-          !Object.is(localStorage.getItem("member"), null) &&
-          dataGroupOrderDetails?.groupOrderInfoResponses?.length > 1)
-      ) {
-        onHandleOpen(true);
-        setOpen(true);
-
-        const username = groupMember
-          ? groupMember?.username
-          : auth?.user?.username;
-        const type = "team";
-        const orderID = groupMember ? groupMember?.orderID : order?.id;
-
-        GroupOrderFindAllAction({ username, type, orderID })(dispatch);
-      } else {
-        Notification.info("Mua nhóm, phải có ít nhất một sản phẩm!");
-      }
-    } else {
-      Notification.error("Vui lòng đăng nhập !");
-      localStorage.removeItem("member");
-      localStorage.removeItem("groupMember");
-    }
-  };
-
   const handleInvite = () => {
     navigator.clipboard.writeText(shortUrlRes);
     setCopy("Đã sao chép");
@@ -587,8 +511,6 @@ const Header = ({ isOpen, onHandleOpen }) => {
 
   return (
     <AppBar style={{ backgroundColor: "white" }}>
-      {/* {console.log("cl: ", dataGroupOrderDetails)} */}
-      {/* {console.log("cl: ", wishlist && wishlist?.quantity)} */}
       <Toolbar className={classes.toolbar}>
         <MoreVertIcon
           className={classes.btnResponsive}
@@ -645,61 +567,6 @@ const Header = ({ isOpen, onHandleOpen }) => {
               />
             </Badge>
           </span>
-          {/* {dataGroupOrderDetails?.groupOrderInfoResponses &&
-            dataGroupOrderDetails?.groupOrderInfoResponses?.length > 0 && (
-              <>
-                {dataGroupOrderDetails?.groupOrderInfoResponses.some(
-                  (a) => a.username === localStorage.getItem("member")
-                ) && (
-                    <span translate="no">
-                      <Badge
-                        badgeContent={
-                          dataGroupOrderDetails &&
-                          (dataGroupOrderDetails?.groupOrderInfoResponses
-                            ?.length > 0
-                            ? dataGroupOrderDetails?.groupOrderInfoResponses
-                              ?.length - 1
-                            : 0)
-                        }
-                        color="secondary"
-                        style={{ marginRight: 20 }}
-                      >
-                        <GroupAddIcon
-                          style={{ color: "#416c48", cursor: "pointer" }}
-                          aria-haspopup="true"
-                          onClick={handleDrawerOpenGroup}
-                        />
-                      </Badge>
-                    </span>
-                  )}
-              </>
-            )} */}
-          {/* {dataGroupOrderDetails?.groupOrderInfoResponses &&
-            dataGroupOrderDetails?.groupOrderInfoResponses?.length > 0 && (
-              <>
-                {auth?.user?.token && order?.orderDetails?.length > 0 && (
-                  <span translate="no">
-                    <Badge
-                      badgeContent={
-                        dataGroupOrderDetails?.groupOrderInfoResponses?.length >
-                          0
-                          ? dataGroupOrderDetails?.groupOrderInfoResponses
-                            ?.length - 1
-                          : 0
-                      }
-                      color="secondary"
-                      style={{ marginRight: 20 }}
-                    >
-                      <GroupAddIcon
-                        style={{ color: "#416c48", cursor: "pointer" }}
-                        aria-haspopup="true"
-                        onClick={handleDrawerOpenGroup}
-                      />
-                    </Badge>
-                  </span>
-                )}
-              </>
-            )} */}
 
           <Badge style={{ position: "relative" }}>
             {/* <div id="google_translate_element"></div> */}

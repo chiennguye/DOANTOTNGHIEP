@@ -26,11 +26,18 @@ public class SeedRolesTable {
             // Insert Roles
             Role role01 = new Role(ERole.ROLE_ADMIN);
             Role role02 = new Role(ERole.ROLE_USER);
+            Role role03 = new Role(ERole.ROLE_SHIPPER);
 
             // Insert Data
-            roleRepository.saveAll(Arrays.asList(role01, role02));
+            roleRepository.saveAll(Arrays.asList(role01, role02, role03));
             LOGGER.info("Roles Table Seeded.");
         } else {
+            // Check if ROLE_SHIPPER exists
+            if (!roleRepository.findByName(ERole.ROLE_SHIPPER).isPresent()) {
+                Role role03 = new Role(ERole.ROLE_SHIPPER);
+                roleRepository.save(role03);
+                LOGGER.info("ROLE_SHIPPER added to Roles Table.");
+            }
             LOGGER.trace("Roles Seeding Not Required.");
         }
     }

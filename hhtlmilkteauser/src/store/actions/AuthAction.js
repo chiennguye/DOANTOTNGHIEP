@@ -11,10 +11,17 @@ export const AuthLoginAction = (data) => async (dispatch) => {
       data.username = "hhtlmilktea";
     }
     const res = await AuthService.login(data);
-    dispatch(login(res !== undefined ? res.data : { error: 401 }));
-    return res !== undefined ? res.data : { error: 401 };
+    if (res && res.data) {
+      dispatch(login(res.data));
+      return res.data;
+    } else {
+      dispatch(login({ error: 401 }));
+      return { error: 401 };
+    }
   } catch (error) {
-    console.error(error);
+    console.error("Login error:", error);
+    dispatch(login({ error: 401 }));
+    return { error: 401 };
   }
 };
 

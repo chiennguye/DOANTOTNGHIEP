@@ -76,6 +76,14 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "#f5f5f5",
     borderRadius: 5,
   },
+  noteField: {
+    '& .MuiInput-underline': {
+      marginBottom: 0,
+    },
+    '& .MuiInputBase-root': {
+      marginBottom: 0,
+    }
+  },
 }));
 
 const CheckAddress = () => {
@@ -90,6 +98,7 @@ const CheckAddress = () => {
   });
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showMapResult, setShowMapResult] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const {
     register,
@@ -173,18 +182,22 @@ const CheckAddress = () => {
 
       // Create script element
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places`;
+      // Sử dụng API key mới
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRuKWuHnTx15jHDjLuT6lqnE36Rojk&libraries=places&v=weekly`;
       script.async = true;
       script.defer = true;
       
       // Add event listener
       script.addEventListener('load', () => {
+        console.log('Google Maps API loaded successfully');
         setMapLoaded(true);
       });
       
       // Add error handling
       script.addEventListener('error', (e) => {
         console.error('Error loading Google Maps API:', e);
+        // Still allow address input even if map fails to load
+        setMapLoaded(true);
       });
       
       // Append script to document
@@ -198,23 +211,41 @@ const CheckAddress = () => {
   useEffect(() => {
     if (mapLoaded && window.google && window.google.maps && window.google.maps.places) {
       try {
-        const to_places = new window.google.maps.places.Autocomplete(
-          document.getElementById("to_places")
-        );
+        const input = document.getElementById("to_places");
+        if (!input) {
+          console.log("Input element not found");
+          return;
+        }
+
+        console.log("Initializing Google Places Autocomplete");
+        
+        // Sử dụng Autocomplete với cấu hình đơn giản
+        const autocomplete = new window.google.maps.places.Autocomplete(input, {
+          types: ['address'],
+          componentRestrictions: { country: 'vn' },
+          fields: ['formatted_address']
+        });
 
         // Listen for place selection
-        window.google.maps.event.addListener(to_places, "place_changed", function () {
-          const to_place = to_places.getPlace();
-          const to_address = to_place.formatted_address;
-          setAddress(prev => ({
-            ...prev,
-            to: to_address
-          }));
+        autocomplete.addListener('place_changed', () => {
+          console.log("Place changed event triggered");
+          const place = autocomplete.getPlace();
+          console.log("Selected place:", place);
           
-          // Update hidden input
-          const destinationInput = document.getElementById("destination");
-          if (destinationInput) {
-            destinationInput.value = to_address;
+          if (place && place.formatted_address) {
+            const to_address = place.formatted_address;
+            console.log("Setting new address:", to_address);
+            
+            setAddress(prev => ({
+              ...prev,
+              to: to_address
+            }));
+            
+            // Update hidden input
+            const destinationInput = document.getElementById("destination");
+            if (destinationInput) {
+              destinationInput.value = to_address;
+            }
           }
         });
       } catch (error) {
@@ -244,10 +275,15 @@ const CheckAddress = () => {
 
   const handleAddressChange = (field) => (e) => {
     const value = e.target.value;
-    setAddress(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log("handleAddressChange called - field:", field, "value:", value);
+    
+    setAddress(prev => {
+      console.log("Previous address:", prev);
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
     
     // Update destination input when address changes manually
     if (field === 'to') {
@@ -257,6 +293,21 @@ const CheckAddress = () => {
       }
     }
   };
+
+  const handleAddressBlur = () => {
+    console.log("handleAddressBlur called - setting isTyping to false");
+    setIsTyping(false);
+  };
+
+  // Add effect to monitor address changes
+  useEffect(() => {
+    console.log("Address state changed:", address);
+  }, [address]);
+
+  // Add effect to monitor isTyping changes
+  useEffect(() => {
+    console.log("isTyping state changed:", isTyping);
+  }, [isTyping]);
 
   const onHandleCheckMap = () => {
     const destinationValue = document.getElementById("destination").value;
@@ -301,9 +352,12 @@ const CheckAddress = () => {
                     fullWidth
                     placeholder="Nhập địa chỉ chi tiết (số nhà, đường, phường/xã, quận/huyện)"
                     onChange={handleAddressChange('to')}
+                    onBlur={handleAddressBlur}
                     error={!!errors.to_places}
                     helperText={errors.to_places?.message}
-                    disabled={!mapLoaded}
+                    inputProps={{
+                      autoComplete: 'off'
+                    }}
                   />
                   <input
                     id="destination"
@@ -344,6 +398,7 @@ const CheckAddress = () => {
                     onChange={handleAddressChange('note')}
                     inputRef={register}
                     fullWidth
+                    className={classes.noteField}
                   />
                 </Grid>
                 <button

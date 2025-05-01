@@ -33,24 +33,34 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         try {
-
             String jwt = jwtUtils.parseJwt(request);
-
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                String username = jwtUtils.getUsernameFromJwtToken(jwt);
-
-                UserDetails userDetails = customizeUserService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            if (jwt != null) {
+                if (jwtUtils.validateJwtToken(jwt)) {
+                    String username = jwtUtils.getUsernameFromJwtToken(jwt);
+                    
+                    UserDetails userDetails = customizeUserService.loadUserByUsername(username);
+                    if (userDetails != null) {
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        LOGGER.info("Authenticated user: {}", username);
+                    } else {
+                        LOGGER.error("User not found: {}", username);
+                        SecurityContextHolder.clearContext();
+                    }
+                } else {
+                    LOGGER.error("Invalid JWT token");
+                    SecurityContextHolder.clearContext();
+                }
             }
         } catch (Exception e) {
-            LOGGER.error("Cannot set user authentication: {}", e);
+            LOGGER.error("Cannot set user authentication: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
-
     }
 }

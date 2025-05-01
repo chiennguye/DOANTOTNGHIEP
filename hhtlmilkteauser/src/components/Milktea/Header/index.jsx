@@ -24,7 +24,7 @@ const Header = () => {
                     <Link color="inherit" to="/home" style={{ textDecoration: 'none', color: '#a3abb5' }} >
                         Trang chủ
                     </Link>
-                    <Typography color="textPrimary">Trà sữa</Typography>
+                    <Typography color="textPrimary">Đồ uống các loại</Typography>
                 </Breadcrumbs>
             </Grid>
 
@@ -38,7 +38,7 @@ const Header = () => {
                     padding: 0 + 'px' + 25 + 'px',
                     color: '#0C713D',
                     fontFamily: 'lora'
-                }}>Trà sữa</Typography>
+                }}>Đồ uống các loại</Typography>
             </Grid>
             <Grid item md={12} xs={12}>
                 <Typography style={{ display: 'flex', justifyContent: 'center' }}>

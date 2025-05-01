@@ -1,5 +1,14 @@
 import axios from "axios";
 import { BASE_URL } from "./Constant";
+import AuthService from "../services/AuthService";
+
+// Danh sách các route không cần xác thực
+const PUBLIC_ROUTES = [
+  '/auth/signin',
+  '/auth/signup',
+  '/auth/logout',
+  '/rating/list'
+];
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -8,40 +17,66 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
-  const getUser = JSON.parse(localStorage.getItem("user"));
+// Request interceptor
+api.interceptors.request.use(
+  (config) => {
+    const isPublicRoute = PUBLIC_ROUTES.some(route => config.url.includes(route));
+    
+    // Kiểm tra token trước khi gửi request
+    if (!isPublicRoute && !AuthService.isTokenValid()) {
+      console.log("Token không hợp lệ, chuyển về trang login");
+      window.location.href = "/signin";
+      return Promise.reject("Token không hợp lệ");
+    }
 
-  if (getUser && getUser.token) {
-    config.headers.Authorization = `Bearer ${getUser.token}`;
-  }
-
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => {
-    return new Promise((resolve, reject) => {
-      resolve(response);
+    const token = localStorage.getItem("token");
+    
+    console.log("Request interceptor:", {
+      url: config.url,
+      isPublicRoute,
+      hasToken: !!token,
+      method: config.method
     });
+    
+    if (token && !isPublicRoute) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+      console.log("Đã thêm token vào header:", config.headers["Authorization"]);
+    }
+    
+    return config;
   },
   (error) => {
-    if (!error.response) {
-      localStorage.removeItem("user");
-      // window.location.href = "/";
-      return;
-    }
+    console.error("Request interceptor error:", error);
+    return Promise.reject(error);
+  }
+);
 
-    if (Object.is(401, error.response.status)) {
-      localStorage.removeItem("user");
-      // window.location.href = "/signin";
-      return;
-    }
-
-    if (Object.is(403, error.response.status)) {
-      localStorage.removeItem("user");
+// Response interceptor
+api.interceptors.response.use(
+  (response) => {
+    console.log("Response success:", {
+      url: response.config.url,
+      status: response.status,
+      data: response.data
+    });
+    return response;
+  },
+  (error) => {
+    console.error("Response error:", {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    // Chỉ xử lý lỗi 401 cho các route cần xác thực
+    if (error.response?.status === 401 && !PUBLIC_ROUTES.some(route => error.config?.url.includes(route))) {
+      console.log("Token không hợp lệ hoặc hết hạn, xóa token và chuyển về trang login");
+      AuthService.clearAll();
       window.location.href = "/signin";
-      return;
     }
+    
+    return Promise.reject(error);
   }
 );
 

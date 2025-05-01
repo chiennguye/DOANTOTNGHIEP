@@ -18,6 +18,7 @@ const Login = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -25,23 +26,30 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    dispatch(AuthLoginAction(data));
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    setMessage("");
+    try {
+      await dispatch(AuthLoginAction(data));
+    } catch (error) {
+      setMessage("Đã xảy ra lỗi khi đăng nhập");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     if (auth.user) {
-      if (401 === auth.user.error) {
+      if (auth.user.error === 401) {
         setMessage("Tài khoản hoặc mật khẩu không đúng");
-        history.replace("/login");
         return;
       }
-      if (auth.user.roles.includes("ROLE_ADMIN")) {
+      
+      if (auth.user.roles && (auth.user.roles.includes("ROLE_ADMIN") || auth.user.roles.includes("ROLE_SHIPPER"))) {
         localStorage.setItem("user", JSON.stringify(auth.user));
         history.push("/dashboard");
       } else {
-        setMessage("Tài khoản không có quyền");
-        history.replace("/login");
+        setMessage("Tài khoản không có quyền truy cập");
       }
     }
   }, [auth, history]);
@@ -126,8 +134,9 @@ const Login = () => {
               variant="contained"
               color="primary"
               style={{ marginTop: 20 }}
+              disabled={isLoading}
             >
-              Đăng Nhập
+              {isLoading ? "Đang đăng nhập..." : "Đăng Nhập"}
             </Button>
           </form>
         </Grid>

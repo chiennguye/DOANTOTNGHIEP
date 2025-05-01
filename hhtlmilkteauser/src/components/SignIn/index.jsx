@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
@@ -14,6 +14,7 @@ import { AuthLoginAction } from "./../../../src/store/actions/AuthAction";
 import { FormHelperText, InputAdornment } from "@material-ui/core";
 import { AccountCircle, LockRounded } from "@material-ui/icons";
 import { GroupOrderFindAllAction } from "../../store/actions/GroupOrderAction";
+import AuthService from "../../services/AuthService";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -42,6 +43,8 @@ const SignIn = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const [message, setMessage] = useState("");
+  const autocompleteRef = useRef(null);
+  const [error, setError] = useState("");
 
   const {
     register,
@@ -49,28 +52,84 @@ const SignIn = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    AuthLoginAction(data)(dispatch).then((res) => {
-      if (Object.is(401, res?.error)) {
-        setMessage("Tài khoản hoặc mật khẩu không đúng");
+  useEffect(() => {
+    // Đợi Google Maps API load xong
+    const initAutocomplete = () => {
+      if (window.google && window.google.maps) {
+        const input = document.getElementById('address-input');
+        if (input) {
+          autocompleteRef.current = new window.google.maps.places.Autocomplete(input, {
+            types: ['address'],
+            componentRestrictions: { country: 'VN' }
+          });
+        }
+      }
+    };
+
+    // Kiểm tra nếu Google Maps API đã load
+    if (window.google && window.google.maps) {
+      initAutocomplete();
+    } else {
+      // Nếu chưa load xong, đợi sự kiện load
+      window.addEventListener('load', initAutocomplete);
+    }
+
+    return () => {
+      window.removeEventListener('load', initAutocomplete);
+    };
+  }, []);
+
+  const onSubmit = async (data) => {
+    try {
+      console.log("Bắt đầu đăng nhập với username:", data.username);
+      
+      // Xóa localStorage trước khi đăng nhập
+      localStorage.clear();
+      console.log("Đã xóa localStorage");
+      
+      const response = await AuthService.login(data);
+      console.log("Response từ server:", response.data);
+      
+      // Kiểm tra role từ response
+      const roles = response.data.roles || [];
+      console.log("Roles từ response:", roles);
+      
+      if (!roles || roles.length === 0) {
+        console.error("Không có role trong response");
+        setError("Tài khoản không có quyền truy cập");
         return;
       }
-      if (res?.roles.includes("ROLE_ADMIN")) {
-        setMessage("Tài khoản hoặc mật khẩu không đúng");
+
+      // Kiểm tra role hợp lệ
+      const validRoles = ["ROLE_USER", "ROLE_ADMIN"];
+      const hasValidRole = roles.some(role => validRoles.includes(role));
+      
+      if (!hasValidRole) {
+        console.error("Không có role hợp lệ:", roles);
+        setError("Tài khoản không có quyền truy cập");
         return;
       }
-      if (res?.roles.includes("ROLE_USER")) {
-        localStorage.setItem("user", JSON.stringify(auth.user));
-        localStorage.removeItem("groupMember");
-        localStorage.removeItem("member");
-        localStorage.removeItem("map");
-        localStorage.removeItem("group");
-        localStorage.removeItem("reset-pass");
-        localStorage.removeItem("email");
-        history.push("/home");
-        // window.location.href = "/home"
+
+      // Lưu role vào localStorage
+      localStorage.setItem("role", roles[0]);
+      console.log("Đã lưu role:", roles[0]);
+
+      // Chuyển hướng dựa vào role và load lại trang
+      if (roles.includes("ROLE_ADMIN")) {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/";
       }
-    });
+    } catch (error) {
+      console.error("Lỗi:", error);
+      if (error.response?.status === 401) {
+        setError("Tên đăng nhập hoặc mật khẩu không đúng");
+      } else if (error.response?.status === 403) {
+        setError("Tài khoản không có quyền truy cập");
+      } else {
+        setError("Đã xảy ra lỗi, vui lòng thử lại sau");
+      }
+    }
   };
 
   //support group member
@@ -92,20 +151,19 @@ const SignIn = () => {
   useEffect(() => {
     if (auth.user) {
       if (Object.is(401, auth.user.error)) {
-        history.replace("/signin");
+        window.location.href = "/signin";
         return;
       }
       if (auth.user.roles.includes("ROLE_ADMIN")) {
-        history.replace("/signin");
+        window.location.href = "/signin";
         return;
       }
       if (auth.user.roles.includes("ROLE_USER")) {
         localStorage.setItem("user", JSON.stringify(auth.user));
-        history.push("/home");
-        // window.location.href = "/home"
+        window.location.href = "/home";
       }
     }
-  }, [auth, history]);
+  }, [auth]);
 
   return (
     <Container component="main" maxWidth="xs">
@@ -117,7 +175,7 @@ const SignIn = () => {
           Đăng nhập
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)} className={classes.form}>
-          {message && (
+          {error && (
             <FormHelperText
               style={{
                 color: "red",
@@ -125,7 +183,7 @@ const SignIn = () => {
                 textTransform: "uppercase",
               }}
             >
-              {message}
+              {error}
             </FormHelperText>
           )}
           <TextField
