@@ -1,20 +1,44 @@
 import api from "./../common/APIClient";
 
 class OrderService {
-    listProcess = (query) => {
-        return api.get("/shipper/orders", { params: query });
+    listProcess = async (query) => {
+        try {
+            const response = await api.get("/order/listProcess", { params: query });
+            return response;
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+            throw error;
+        }
     };
 
-    listSuccess = (query) => {
-        return api.get("/order/listSuccess", { params: query });
+    listSuccess = async (query) => {
+        try {
+            const response = await api.get("/order/listSuccess", { params: query });
+            return response;
+        } catch (error) {
+            console.error("Error fetching success orders:", error);
+            throw error;
+        }
     };
 
-    listFail = (query) => {
-        return api.get("/order/listFail", { params: query });
+    listFail = async (query) => {
+        try {
+            const response = await api.get("/order/listFail", { params: query });
+            return response;
+        } catch (error) {
+            console.error("Error fetching failed orders:", error);
+            throw error;
+        }
     };
 
-    updateStatus = (data) => {
-        return api.put("/order/status", data);
+    updateStatus = async (data) => {
+        try {
+            const response = await api.put("/order/status", data);
+            return response;
+        } catch (error) {
+            console.error("Error updating order status:", error);
+            throw error;
+        }
     };
 }
 

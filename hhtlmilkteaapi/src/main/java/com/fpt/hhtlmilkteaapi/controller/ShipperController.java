@@ -21,24 +21,27 @@ public class ShipperController {
     private IOrderRepository orderRepository;
 
     @GetMapping("/orders")
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasRole('SHIPPER') or hasRole('ADMIN')")
     public ResponseEntity<?> getOrdersToDeliver(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "id") String sortField,
-            @RequestParam(defaultValue = "asc") String sortDir
-    ) {
-        Pageable pageable = PageRequest.of(
-                page - 1, pageSize,
-                "asc".equals(sortDir) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending()
-        );
-
-        Page<Order> orders = orderRepository.findByStatus(2, pageable);
-        return ResponseEntity.ok(orders);
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        try {
+            Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+            Pageable pageable = PageRequest.of(page, size, sort);
+            
+            // Lấy đơn hàng có trạng thái đang giao hàng (status = 2)
+            Page<Order> orders = orderRepository.findByStatus(2, pageable);
+            
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
 
     @PutMapping("/orders/{id}/complete")
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasRole('SHIPPER') or hasRole('ADMIN')")
     public ResponseEntity<?> completeOrder(@PathVariable String id) {
         Order order = orderRepository.findById(id).orElse(null);
         if (order == null) {

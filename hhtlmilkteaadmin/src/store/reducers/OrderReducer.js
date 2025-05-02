@@ -27,6 +27,12 @@ const OrderSlice = createSlice({
             state.listFail = action.payload.content;
         },
         onStatus: (state, action) => {
+            if(action.payload.status === 1){
+                const existingOrder = state.listProcess.find((order) => order.id === action.payload.id);
+                if(existingOrder){
+                    existingOrder.status = 1;
+                }
+            }
             if(action.payload.status === 2){
                 const existingOrder = state.listProcess.find((order) => order.id === action.payload.id);
                 if(existingOrder){

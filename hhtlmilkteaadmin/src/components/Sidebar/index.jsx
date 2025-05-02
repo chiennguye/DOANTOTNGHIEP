@@ -25,45 +25,57 @@ const Sidebar = () => {
     const history = useHistory();
     const location = useLocation();
     const { user } = useSelector((state) => state.auth);
-    const isAdmin = user?.roles?.includes("ROLE_ADMIN");
-    const isShipper = user?.roles?.includes("ROLE_SHIPPER");
+    
+    // Kiểm tra user có tồn tại và có roles không
+    if (!user || !user.roles) {
+        return null;
+    }
 
-    const menuItems = [
+    const isAdmin = user.roles.includes("ROLE_ADMIN");
+    const isShipper = user.roles.includes("ROLE_SHIPPER");
+
+    // Nếu không phải admin hoặc shipper thì không hiển thị menu
+    if (!isAdmin && !isShipper) {
+        return null;
+    }
+
+    const menuItems = isShipper ? [
         {
-            path: "/admin/dashboard",
+            path: "/shipper",
+            icon: <LocalShippingOutlinedIcon />,
+            name: "Đơn hàng cần giao",
+            show: true
+        }
+    ] : [
+        {
+            path: "/dashboard",
             icon: <DashboardIcon />,
             name: "Dashboard",
             show: true
         },
         {
-            path: "/admin/product",
+            path: "/product",
             icon: <FastfoodIcon />,
             name: "Sản phẩm",
-            show: isAdmin
+            show: true
         },
         {
-            path: "/admin/category",
+            path: "/category",
             icon: <CategoryIcon />,
             name: "Danh mục",
-            show: isAdmin
+            show: true
         },
         {
-            path: "/admin/order",
+            path: "/order",
             icon: <LocalShippingOutlinedIcon />,
             name: "Đơn hàng",
-            show: isAdmin
+            show: true
         },
         {
-            path: "/admin/user",
+            path: "/user",
             icon: <PeopleIcon />,
             name: "Người dùng",
-            show: isAdmin
-        },
-        {
-            path: "/admin/shipper",
-            icon: <LocalShippingOutlinedIcon />,
-            name: "Giao hàng",
-            show: isShipper
+            show: true
         }
     ];
 

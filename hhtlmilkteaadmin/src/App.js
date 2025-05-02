@@ -45,6 +45,8 @@ const DetailOrder = React.lazy(() => import("./components/Order/DetailOrder"));
 
 const Rating = React.lazy(() => import("./components/Rating"));
 
+const Shipper = React.lazy(() => import("./components/Shipper"));
+
 const App = () => {
   return (
     <>
@@ -68,6 +70,10 @@ const App = () => {
             </Route>
             <PrivateRoute path={"/dashboard"}>
               <Dashboard />
+            </PrivateRoute>
+
+            <PrivateRoute exact path={"/shipper"}>
+              <Shipper />
             </PrivateRoute>
 
             <PrivateRoute exact path={"/user"}>

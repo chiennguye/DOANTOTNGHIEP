@@ -55,9 +55,24 @@ const Shipper = () => {
     const { listProcess, totalPagesProcess } = useSelector((state) => state.order);
 
     useEffect(() => {
-        // Load orders with status 2 (shipping)
-        dispatch(OrderListProcess({ page, sortField: valueToOrderBy, sortDir: valueToSortDir }));
-    }, [dispatch, page, valueToOrderBy, valueToSortDir]);
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user || !user.token) {
+            history.push("/login");
+            return;
+        }
+
+        // Load orders with status 1 (processing)
+        dispatch(OrderListProcess({ page, sortField: valueToOrderBy, sortDir: valueToSortDir }))
+            .catch(error => {
+                console.error("Error loading orders:", error);
+                if (error.response && error.response.status === 403) {
+                    Notification.error("Bạn không có quyền truy cập vào trang này");
+                    history.push("/dashboard");
+                } else {
+                    Notification.error("Không thể tải danh sách đơn hàng");
+                }
+            });
+    }, [dispatch, page, valueToOrderBy, valueToSortDir, history]);
 
     const handlePage = (event, value) => {
         setPage(value);
@@ -123,7 +138,8 @@ const Shipper = () => {
                                         <TableCell>
                                             <Chip
                                                 label="Đang giao hàng"
-                                                style={{ backgroundColor: "lightblue", color: "white" }}
+                                                color="primary"
+                                                variant="outlined"
                                             />
                                         </TableCell>
                                         <TableCell>

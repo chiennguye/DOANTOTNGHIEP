@@ -45,11 +45,15 @@ const Login = () => {
         return;
       }
       
-      if (auth.user.roles && (auth.user.roles.includes("ROLE_ADMIN") || auth.user.roles.includes("ROLE_SHIPPER"))) {
+      if (auth.user.roles) {
         localStorage.setItem("user", JSON.stringify(auth.user));
-        history.push("/dashboard");
-      } else {
-        setMessage("Tài khoản không có quyền truy cập");
+        if (auth.user.roles.includes("ROLE_SHIPPER")) {
+          history.push("/shipper");
+        } else if (auth.user.roles.includes("ROLE_ADMIN")) {
+          history.push("/dashboard");
+        } else {
+          setMessage("Tài khoản không có quyền truy cập");
+        }
       }
     }
   }, [auth, history]);
