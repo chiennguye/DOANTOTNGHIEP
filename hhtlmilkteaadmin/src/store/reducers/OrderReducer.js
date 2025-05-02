@@ -3,6 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
     listProcess: [],
     totalPagesProcess: 1,
+    listShipping: [],
+    totalPagesShipping: 1,
     listSuccess: [],
     totalPagesSuccess: 1,
     listFail: [],
@@ -17,6 +19,12 @@ const OrderSlice = createSlice({
         getListProcess: (state, action) => {
             state.totalPagesProcess = action.payload.totalPages;
             state.listProcess = action.payload.content;
+        },
+        getListShipping: (state, action) => {
+            console.log("Reducer getListShipping received data:", action.payload);
+            state.totalPagesShipping = action.payload.totalPages;
+            state.listShipping = action.payload.content;
+            console.log("Updated state:", state);
         },
         getListSuccess: (state, action) => {
             state.totalPagesSuccess = action.payload.totalPages;
@@ -56,5 +64,5 @@ const OrderSlice = createSlice({
 });
 
 const { reducer, actions } = OrderSlice;
-export const { getListProcess, getListSuccess, getListFail, onStatus } = actions;
+export const { getListProcess, getListShipping, getListSuccess, getListFail, onStatus } = actions;
 export default reducer;

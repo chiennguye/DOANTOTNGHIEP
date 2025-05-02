@@ -1,4 +1,4 @@
-import { Card, Grid, makeStyles, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Chip, Typography } from "@material-ui/core"
+import { Card, Grid, makeStyles, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Chip, Typography, TableHead } from "@material-ui/core"
 import React, { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux";
 import { Pagination } from '@material-ui/lab';
@@ -9,7 +9,7 @@ import BarCode from "react-barcode";
 import { LocalShippingOutlined } from "@material-ui/icons";
 import { confirmAlert } from 'react-confirm-alert';
 import Notification from "./../../common/Notification";
-import { OrderStatusUpdate, OrderListProcess } from "../../store/actions/OrderAction";
+import { OrderCompleteAction, OrderListShipping } from "../../store/actions/OrderAction";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
         minWidth: 650,
     },
     wrapped: {
-        maxWidth: 100,
+        maxWidth: 200,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -32,6 +32,14 @@ const useStyles = makeStyles((theme) => ({
     barCode: {
         width: '100%',
         height: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+    },
+    barCodeText: {
+        marginTop: 5,
+        fontSize: '12px',
+        wordBreak: 'break-all',
     },
 }));
 
@@ -49,10 +57,13 @@ const Shipper = () => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const history = useHistory();
-    const [page, setPage] = useState(1);
-    const [valueToOrderBy, setValueToOrderBy] = useState('id');
-    const [valueToSortDir, setValueToSortDir] = useState('asc');
-    const { listProcess, totalPagesProcess } = useSelector((state) => state.order);
+    const [page, setPage] = useState(0);
+    const [valueToOrderBy, setValueToOrderBy] = useState('createdAt');
+    const [valueToSortDir, setValueToSortDir] = useState('desc');
+    const { listShipping, totalPagesShipping } = useSelector((state) => {
+        console.log("Current state:", state.order);
+        return state.order;
+    });
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user"));
@@ -61,9 +72,11 @@ const Shipper = () => {
             return;
         }
 
-        // Load orders with status 1 (processing)
-        dispatch(OrderListProcess({ page, sortField: valueToOrderBy, sortDir: valueToSortDir }))
-            .catch(error => {
+        const fetchOrders = async () => {
+            try {
+                console.log("Fetching orders with params:", { page, sortField: valueToOrderBy, sortDir: valueToSortDir });
+                await dispatch(OrderListShipping({ page, sortField: valueToOrderBy, sortDir: valueToSortDir }));
+            } catch (error) {
                 console.error("Error loading orders:", error);
                 if (error.response && error.response.status === 403) {
                     Notification.error("Bạn không có quyền truy cập vào trang này");
@@ -71,7 +84,10 @@ const Shipper = () => {
                 } else {
                     Notification.error("Không thể tải danh sách đơn hàng");
                 }
-            });
+            }
+        };
+
+        fetchOrders();
     }, [dispatch, page, valueToOrderBy, valueToSortDir, history]);
 
     const handlePage = (event, value) => {
@@ -91,9 +107,16 @@ const Shipper = () => {
             buttons: [
                 {
                     label: "Có",
-                    onClick: () => {
-                        dispatch(OrderStatusUpdate({ id, status: 3 }));
-                        Notification.success("Đã cập nhật thành công");
+                    onClick: async () => {
+                        try {
+                            await dispatch(OrderCompleteAction(id));
+                            Notification.success("Đã cập nhật thành công");
+                            // Refresh the list after status update
+                            await dispatch(OrderListShipping({ page, sortField: valueToOrderBy, sortDir: valueToSortDir }));
+                        } catch (error) {
+                            console.error("Error updating order status:", error);
+                            Notification.error("Cập nhật trạng thái thất bại");
+                        }
                     },
                 },
                 {
@@ -118,21 +141,32 @@ const Shipper = () => {
 
                 <TableContainer component={Paper}>
                     <Table className={classes.table} aria-label="simple table">
-                        <TableHeader
-                            valueToOrderBy={valueToOrderBy}
-                            valueToSortDir={valueToSortDir}
-                            handleRequestSort={handleRequestSort}
-                            fields={fields}
-                        />
+                        <TableHead>
+                            <TableRow>
+                                {fields.map((field) => (
+                                    <TableCell
+                                        key={field.id}
+                                        align="left"
+                                        padding="default"
+                                        sortDirection={valueToOrderBy === field.id ? valueToSortDir : false}
+                                    >
+                                        {field.label}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
                         <TableBody>
-                            {listProcess && listProcess.length > 0 ? (
-                                listProcess.map((order) => (
+                            {listShipping && listShipping.length > 0 ? (
+                                listShipping.map((order) => (
                                     <TableRow key={order.id}>
                                         <TableCell component="th" scope="row" className={classes.wrapped}>
-                                            <BarCode value={order.id} className={classes.barCode} />
+                                            <div className={classes.barCode}>
+                                                <BarCode value={order.id} className={classes.barCode} />
+                                                <div className={classes.barCodeText}>{order.id}</div>
+                                            </div>
                                         </TableCell>
                                         <TableCell>{moment(order.createdAt).format("YYYY-MM-DD")}</TableCell>
-                                        <TableCell>{order.userId.fullName}</TableCell>
+                                        <TableCell>{order.userId?.fullName}</TableCell>
                                         <TableCell>{order.address}</TableCell>
                                         <TableCell>{order.phone}</TableCell>
                                         <TableCell>
@@ -170,12 +204,12 @@ const Shipper = () => {
                     </Table>
                 </TableContainer>
 
-                {listProcess && listProcess.length > 0 && (
+                {listShipping && listShipping.length > 0 && (
                     <Pagination
                         style={{ marginTop: 50, marginBottom: 10, marginLeft: 10 }}
                         color="primary"
                         shape="rounded"
-                        count={totalPagesProcess}
+                        count={totalPagesShipping}
                         page={page}
                         onChange={handlePage}
                         showFirstButton

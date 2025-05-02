@@ -40,6 +40,28 @@ class OrderService {
             throw error;
         }
     };
+
+    listShipping = async (query) => {
+        try {
+            console.log("Calling API /shipper/orders with query:", query);
+            const response = await api.get("/shipper/orders", { params: query });
+            console.log("API response:", response.data);
+            return response;
+        } catch (error) {
+            console.error("Error fetching shipping orders:", error);
+            throw error;
+        }
+    };
+
+    completeOrder = async (id) => {
+        try {
+            const response = await api.put(`/shipper/orders/${id}/complete`);
+            return response;
+        } catch (error) {
+            console.error("Error completing order:", error);
+            throw error;
+        }
+    };
 }
 
 export default new OrderService();
