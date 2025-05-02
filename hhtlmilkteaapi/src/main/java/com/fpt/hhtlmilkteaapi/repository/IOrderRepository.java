@@ -16,7 +16,9 @@ import java.util.Optional;
 @Repository
 public interface IOrderRepository extends JpaRepository<Order, String> {
     Order findOrderByUserId_IdAndStatusLike(long id, int status, Sort sort);
+
     Page<Order> findAllByUserIdEqualsAndStatusIn(Optional<User> user, List<Integer> status, Pageable pageable);
+
     Page<Order> findAllByStatusIn(List<Integer> status, Pageable pageable);
 
     Optional<Order> findByUserIdAndStatusAndTeam(User userId, int status, boolean team);
@@ -33,7 +35,7 @@ public interface IOrderRepository extends JpaRepository<Order, String> {
     @Query(value = "SELECT sum(total_price) FROM hhtlmilktea.order  where date(created_at) = curdate() AND status = 3", nativeQuery = true)
     Integer revenueToday();
 
-    @Query(value = "select * from hhtlmilktea.order where total_price > 0 and status in (1,2,3) order by id desc limit 5", nativeQuery = true)
+    @Query(value = "select * from hhtlmilktea.order where total_price > 0 and status in (1,2,3) order by created_at desc limit 5", nativeQuery = true)
     List<Order> lastFiveOrders();
 
     Order findByIdEquals(String id);

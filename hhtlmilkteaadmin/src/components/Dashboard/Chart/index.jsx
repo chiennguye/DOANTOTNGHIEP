@@ -79,12 +79,12 @@ const Chart = () => {
         </Grid>
       </Grid>
 
-      <ResponsiveContainer width="100%" height="90%" minHeight="90%" minWidth="100%">
+      <ResponsiveContainer width="100%" height={400}>
         <LineChart
           data={
-            listRevenue.map((r) =>
-              createData(r.month, r.revenue)
-            )
+            listRevenue && listRevenue.length > 0 
+              ? listRevenue.map((r) => createData(r.month, r.revenue))
+              : []
           }
           margin={{
             top: 16,
@@ -110,8 +110,17 @@ const Chart = () => {
               Doanh thu (VNĐ)
             </Label>
           </YAxis>
-          <Line type="monotone" dataKey="revenue" stroke={theme.palette.primary.main} dot={false} />
-          <Tooltip />
+          <Line 
+            type="monotone" 
+            dataKey="revenue" 
+            stroke={theme.palette.primary.main} 
+            dot={false}
+            animationDuration={1000}
+            animationBegin={0}
+          />
+          <Tooltip 
+            formatter={(value) => [`${value.toLocaleString()} VNĐ`, 'Doanh thu']}
+          />
         </LineChart>
       </ResponsiveContainer>
     </React.Fragment >
