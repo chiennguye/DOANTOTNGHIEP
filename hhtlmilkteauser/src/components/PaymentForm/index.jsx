@@ -142,8 +142,8 @@ const PaymentForm = () => {
         ? +address.shippingPrice +
           +dataGroupOrderDetails?.totalPriceGroup -
           mark +
-          +dataGroupOrderDetails?.totalPriceGroup * 0.05
-        : +address.shippingPrice + +totalPrice - mark + +totalPrice * 0.05,
+          +dataGroupOrderDetails?.totalPriceGroup * 0.01
+        : +address.shippingPrice + +totalPrice - mark + +totalPrice * 0.01,
       memberVip: mark,
       total: localStorage.getItem("group")
         ? +dataGroupOrderDetails?.totalPriceGroup
@@ -161,8 +161,8 @@ const PaymentForm = () => {
         ? +address.shippingPrice +
             +dataGroupOrderDetails?.totalPriceGroup -
             mark +
-            +dataGroupOrderDetails?.totalPriceGroup * 0.05
-        : +address.shippingPrice + +totalPrice - mark + +totalPrice * 0.05
+            +dataGroupOrderDetails?.totalPriceGroup * 0.01
+        : +address.shippingPrice + +totalPrice - mark + +totalPrice * 0.01
     );
     localStorage.removeItem("order");
     localStorage.setItem(
@@ -173,8 +173,8 @@ const PaymentForm = () => {
           ? +address.shippingPrice +
             +dataGroupOrderDetails?.totalPriceGroup -
             mark +
-            +dataGroupOrderDetails?.totalPriceGroup * 0.05
-          : +address.shippingPrice + +totalPrice - mark + +totalPrice * 0.05,
+            +dataGroupOrderDetails?.totalPriceGroup * 0.01
+          : +address.shippingPrice + +totalPrice - mark + +totalPrice * 0.01,
         memberVip: mark,
         address: address.to,
         phone: address.phone,
@@ -226,8 +226,8 @@ const PaymentForm = () => {
           ? +address.shippingPrice +
             +dataGroupOrderDetails?.totalPriceGroup -
             mark +
-            +dataGroupOrderDetails?.totalPriceGroup * 0.05
-          : +address.shippingPrice + +totalPrice - mark + +totalPrice * 0.05,
+            +dataGroupOrderDetails?.totalPriceGroup * 0.01
+          : +address.shippingPrice + +totalPrice - mark + +totalPrice * 0.01,
         orderInfo: `Thanh toan don hang ${order.id}`,
         bankCode: 'NCB'
       };
@@ -513,12 +513,12 @@ const PaymentForm = () => {
               </span>
             </Typography>
             <Typography variant="body1" gutterBottom>
-              <b>Thuế (5%): </b>
+              <b>Phí nền tảng (1%): </b>
               <span translate="no">
                 {(
                   (localStorage.getItem("group") &&
-                    +dataGroupOrderDetails?.totalPriceGroup * 0.05) ??
-                  +totalPrice * 0.05
+                    +dataGroupOrderDetails?.totalPriceGroup * 0.01) ??
+                  +totalPrice * 0.01
                 ).toLocaleString("it-IT", {
                   style: "currency",
                   currency: "VND",
@@ -552,7 +552,7 @@ const PaymentForm = () => {
                       +address?.shippingPrice +
                       +dataGroupOrderDetails?.totalPriceGroup -
                       mark +
-                      +dataGroupOrderDetails?.totalPriceGroup * 0.05
+                      +dataGroupOrderDetails?.totalPriceGroup * 0.01
                     ).toLocaleString("it-IT", {
                       style: "currency",
                       currency: "VND",
@@ -561,7 +561,7 @@ const PaymentForm = () => {
                       +address?.shippingPrice +
                       +totalPrice -
                       mark +
-                      +totalPrice * 0.05
+                      +totalPrice * 0.01
                     ).toLocaleString("it-IT", {
                       style: "currency",
                       currency: "VND",

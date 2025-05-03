@@ -358,10 +358,10 @@ const HistoryDetail = () => {
                                             <TableRow>
                                                 <TableCell colSpan={3} className={classes.cellWithoutBorder} />
                                                 <TableCell className={classes.cellWithoutBorder}>
-                                                    <b style={{ paddingLeft: 130 }}>Thuế (5%):</b>
+                                                    <b style={{ paddingLeft: 130 }}>Phí nền tảng (1%):</b>
                                                 </TableCell>
                                                 <TableCell align="right" className={classes.cellWithoutBorder}>
-                                                    <b style={{ paddingRight: 45 }} translate="no">{((order.totalPrice - order.shipping + order.memberVip) / 1.05 * 0.05).toLocaleString('it-IT', { style: 'currency', currency: 'VND' })}</b>
+                                                    <b style={{ paddingRight: 45 }} translate="no">{((order.totalPrice - order.shipping + order.memberVip) / 1.05 * 0.01).toLocaleString('it-IT', { style: 'currency', currency: 'VND' })}</b>
                                                 </TableCell>
                                             </TableRow>
                                             <TableRow>

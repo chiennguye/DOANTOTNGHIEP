@@ -141,20 +141,12 @@ const Shipper = () => {
 
                 <TableContainer component={Paper}>
                     <Table className={classes.table} aria-label="simple table">
-                        <TableHead>
-                            <TableRow>
-                                {fields.map((field) => (
-                                    <TableCell
-                                        key={field.id}
-                                        align="left"
-                                        padding="default"
-                                        sortDirection={valueToOrderBy === field.id ? valueToSortDir : false}
-                                    >
-                                        {field.label}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
+                        <TableHeader
+                            valueToOrderBy={valueToOrderBy}
+                            valueToSortDir={valueToSortDir}
+                            handleRequestSort={handleRequestSort}
+                            fields={fields}
+                        />
                         <TableBody>
                             {listShipping && listShipping.length > 0 ? (
                                 listShipping.map((order) => (

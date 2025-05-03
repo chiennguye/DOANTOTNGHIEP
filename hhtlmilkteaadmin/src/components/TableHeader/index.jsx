@@ -18,22 +18,23 @@ const TableHeader = ({
   return (
     <TableHead>
       <TableRow>
-        {fields.map((field, index) => (
-          <TableCell key={index}>
-            {field.name ? (
+        {fields.map((field) => (
+          <TableCell
+            key={field.id}
+            align="left"
+            padding="default"
+            sortDirection={valueToOrderBy === field.id ? valueToSortDir : false}
+          >
+            {!field.disableSorting ? (
               <TableSortLabel
-                active={Object.is(valueToOrderBy, field.name)}
-                direction={
-                  Object.is(valueToOrderBy, field.name)
-                    ? valueToSortDir
-                    : field.dir
-                }
-                onClick={createSortHandler(field.name)}
+                active={valueToOrderBy === field.id}
+                direction={valueToOrderBy === field.id ? valueToSortDir : 'asc'}
+                onClick={createSortHandler(field.id)}
               >
-                {field.lable}
+                {field.label}
               </TableSortLabel>
             ) : (
-              field.lable
+              field.label
             )}
           </TableCell>
         ))}
