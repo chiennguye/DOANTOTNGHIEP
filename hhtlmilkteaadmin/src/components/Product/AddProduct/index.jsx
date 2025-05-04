@@ -94,18 +94,45 @@ const AddProduct = () => {
     const [cateName, setCateName] = useState("default");
 
     // Create product
-    const onSubmit = (data) => {
-        data.category = categories.find(c => c.name === data.category);
-        data.additionOptions = right;
-        data.sizeOptions = rightSize;
-        data.multipartFile = data.multipartFile[0];
-        setOpenBD(!open);
-        setTimeout(() => {
-            dispatch(addProduct(data)).then(res => {
-                history.push("/product")
-                Notification.success("Đã thêm sản phẩm thành công!");
-            });
-        }, 2000);
+    const onSubmit = async (data) => {
+        try {
+            const selectedCategory = categories.find(c => c.name === data.category);
+            if (!selectedCategory) {
+                Notification.error("Vui lòng chọn loại sản phẩm hợp lệ!");
+                setOpenBD(false);
+                return;
+            }
+            data.category = selectedCategory.id;
+            data.multipartFile = data.multipartFile[0];
+
+            if (cateName === "Snack" || cateName === "Product") {
+                data.initialQuantity = initialQuantity;
+                data.minimumQuantity = minimumQuantity;
+                data.additionOptionsList = [];
+                data.sizeOptionsList = [];
+            } else {
+                data.additionOptionsList = right.map(item => ({ id: item.id }));
+                data.sizeOptionsList = rightSize.map(item => ({ id: item.id }));
+                data.initialQuantity = undefined;
+                data.minimumQuantity = undefined;
+            }
+
+            if (data.initialQuantity === undefined) delete data.initialQuantity;
+            if (data.minimumQuantity === undefined) delete data.minimumQuantity;
+
+            // Log object data
+            console.log("Dữ liệu chuẩn bị gửi lên (object):", data);
+
+            setOpenBD(true);
+            await dispatch(addProduct(data));
+            Notification.success("Đã thêm sản phẩm thành công!");
+            history.push("/product");
+        } catch (error) {
+            console.error("Error:", error);
+            Notification.error("Thêm sản phẩm thất bại. Vui lòng thử lại!");
+        } finally {
+            setOpenBD(false);
+        }
     };
 
     // Function add, remove tranfer list
@@ -275,6 +302,9 @@ const AddProduct = () => {
         setCateName(e.target.value);
     }
 
+    const [initialQuantity, setInitialQuantity] = useState('');
+    const [minimumQuantity, setMinimumQuantity] = useState('');
+
     return (
         <div className={classes.root}>
             <Grid container spacing={3}>
@@ -343,15 +373,36 @@ const AddProduct = () => {
                                     }
                                 </FormControl>
 
-
+                                {(cateName === "Snack" || cateName === "Product") ? (
+                                    <>
+                                        <TextField
+                                            label="Số lượng tồn kho ban đầu"
+                                            type="number"
+                                            value={initialQuantity}
+                                            onChange={e => setInitialQuantity(e.target.value)}
+                                            fullWidth
+                                            style={{ marginTop: 10 }}
+                                            required
+                                        />
+                                        <TextField
+                                            label="Số lượng tối thiểu"
+                                            type="number"
+                                            value={minimumQuantity}
+                                            onChange={e => setMinimumQuantity(e.target.value)}
+                                            fullWidth
+                                            style={{ marginTop: 10 }}
+                                            required
+                                        />
+                                    </>
+                                ) : (
+                                    <>
                                 <div style={{ marginTop: 20 }}>
                                     <div style={{ display: 'flex' }}>
                                         <Typography>
                                             Kích thước:
                                         </Typography>
                                         <div style={{ marginBottom: 10 }}>
-                                            {
-                                                rightSize.length > 0 ? (
+                                                    {rightSize.length > 0 ? (
                                                     rightSize.map(item => (
                                                         <Chip style={{ marginTop: -5, marginLeft: 10, marginBottom: 10 }} variant="outlined" label={item.name} key={item.id} onDelete={() => handleRemoveSize(item.id)} />
                                                     ))
@@ -361,19 +412,17 @@ const AddProduct = () => {
                                                     label="Chưa thêm kích thước"
                                                     color="secondary"
                                                     variant="outlined"
-                                                />)
-                                            }
+                                                    />)}
                                         </div>
                                     </div>
                                     <Button
-                                        disabled={(Object.is(cateName, "default") || Object.is(cateName, "Snack") || Object.is(cateName, "Product")) ? true : false}
+                                                disabled={cateName === "default"}
                                         color="primary"
                                         variant="contained"
-                                        onClick={(handleOpenAddSize)}>
+                                                onClick={handleOpenAddSize}>
                                         Thêm kích thước
                                     </Button>
                                 </div>
-
 
                                 <div style={{ marginTop: 20 }}>
                                     <div style={{ display: 'flex' }}>
@@ -381,8 +430,7 @@ const AddProduct = () => {
                                             Topping:
                                         </Typography>
                                         <div style={{ marginBottom: 10 }}>
-                                            {
-                                                right.length > 0 ? (
+                                                    {right.length > 0 ? (
                                                     right.map(item => (
                                                         <Chip style={{ marginTop: -5, marginLeft: 10, marginBottom: 10 }} variant="outlined" label={item.name} key={item.id} onDelete={() => handleRemoveAdd(item.id)} />
                                                     ))
@@ -392,19 +440,20 @@ const AddProduct = () => {
                                                     label="Chưa thêm topping"
                                                     variant="outlined"
                                                     color="secondary"
-                                                />)
-                                            }
+                                                    />)}
                                         </div>
                                     </div>
                                     <Button
-                                        disabled={(Object.is(cateName, "default") || Object.is(cateName, "Snack") || Object.is(cateName, "Product")) ? true : false}
+                                                disabled={cateName === "default"}
                                         color="primary"
                                         variant="contained"
-                                        onClick={(handleOpenAdd)}
+                                                onClick={handleOpenAdd}
                                     >
                                         Thêm topping
                                     </Button>
                                 </div>
+                                    </>
+                                )}
                             </Grid>
 
 

@@ -1,4 +1,4 @@
-import { Avatar, Chip, Grid, makeStyles, Typography } from "@material-ui/core";
+import { Avatar, Chip, Grid, makeStyles, Typography, Button } from "@material-ui/core";
 import { useState } from "react";
 import { useLocation, Redirect } from "react-router-dom";
 import BarCode from "react-barcode";
@@ -61,14 +61,32 @@ const DetailProduct = () => {
                 <Typography variant="subtitle1">
                   {product?.category?.name}
                 </Typography>
-                <Typography variant="h6">Kích thước sản phẩm:</Typography>
-                {product?.sizeOptions.map((item) => (
-                  <Chip key={item.id} label={item.name} color="primary" />
-                ))}
-                <Typography variant="h6">Topping thêm vào:</Typography>
-                {product?.additionOptions.map((item) => (
-                  <Chip key={item.id} label={item.name} color="primary" />
-                ))}
+
+                {(product?.category?.name === "Snack" || product?.category?.name === "Product") ? (
+                  <>
+                    <Typography variant="h6">Số lượng hàng:</Typography>
+                    <Typography variant="subtitle1">{product?.inventory?.quantity ?? "N/A"}</Typography>
+                    <Typography variant="h6">Số lượng tối thiểu:</Typography>
+                    <Typography variant="subtitle1">{product?.inventory?.minimumQuantity ?? "N/A"}</Typography>
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="h6">Kích thước sản phẩm:</Typography>
+                    {product?.sizeOptions?.length > 0
+                      ? product.sizeOptions.map((item) => (
+                          <Chip key={item.id} label={item.name} color="primary" />
+                        ))
+                      : <Typography variant="subtitle2">Không có</Typography>
+                    }
+                    <Typography variant="h6">Topping thêm vào:</Typography>
+                    {product?.additionOptions?.length > 0
+                      ? product.additionOptions.map((item) => (
+                          <Chip key={item.id} label={item.name} color="primary" />
+                        ))
+                      : <Typography variant="subtitle2">Không có</Typography>
+                    }
+                  </>
+                )}
                 <Typography variant="h6">Barcode:</Typography>
                 <BarCode value={product?.id} />
               </div>
@@ -91,6 +109,14 @@ const DetailProduct = () => {
               </PDFDownloadLink>
             </div>
           </Grid>
+          <Button
+            variant="contained"
+            color="primary"
+            style={{ marginTop: 20 }}
+            onClick={() => window.history.back()}
+          >
+            Quay lại
+          </Button>
         </Grid>
       </Grid>
     </div>

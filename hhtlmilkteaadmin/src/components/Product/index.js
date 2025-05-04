@@ -84,9 +84,6 @@ const Product = () => {
   const [name, setName] = useState("");
   const [pageSize, setPageSize] = useState(3);
 
-  console.log('Products:', products);
-  console.log('Categories:', categories);
-
   useEffect(() => {
     dispatch(CategoryListAction());
     dispatch(AdditionOptionListAction());
@@ -160,13 +157,13 @@ const Product = () => {
   };
 
   const fields = [
-    { lable: "Hình Ảnh" },
-    { name: "name", lable: "Tên Sản Phẩm", dir: "asc" },
-    { name: "title", lable: "Chú Thích", dir: "asc" },
-    { name: "price", lable: "Giá", dir: "asc" },
-    { name: "category", lable: "Loại", dir: "asc" },
-    { lable: "Trạng Thái" },
-    { lable: "Hành Động" },
+    { id: 'image', label: 'Hình ảnh', disableSorting: true },
+    { id: 'name', label: 'Tên sản phẩm', disableSorting: false },
+    { id: "title", label: "Chú Thích", disableSorting: false },
+    { id: 'price', label: 'Giá', disableSorting: false },
+    { id: 'category', label: 'Danh mục', disableSorting: false },
+    { id: 'status', label: 'Trạng thái', disableSorting: true },
+    { id: 'actions', label: 'Hành động', disableSorting: true },
   ];
 
   return (
@@ -284,10 +281,12 @@ const Product = () => {
                 <TableCell>{u.name}</TableCell>
                 <TableCell>{u.title}</TableCell>
                 <TableCell>
-                  {u.price.toLocaleString("it-IT", {
+                  {typeof u.price === "number"
+                    ? u.price.toLocaleString("it-IT", {
                     style: "currency",
                     currency: "VND",
-                  })}
+                      })
+                    : "N/A"}
                 </TableCell>
                 <TableCell>
                   {u.category?.name || 'N/A'}

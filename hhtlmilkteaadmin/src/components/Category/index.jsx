@@ -145,9 +145,9 @@ const Category = () => {
   };
 
   const fields = [
-    { name: "name", lable: "Tên loại sản phẩm", dir: "asc" },
-    { lable: "Trạng thái" },
-    { lable: "Hành Động" },
+    { id: 'name', label: 'Tên loại sản phẩm', disableSorting: false },
+    { id: 'status', label: 'Trạng thái', disableSorting: true },
+    { id: 'actions', label: 'Hành động', disableSorting: true },
   ];
 
   return (

@@ -5,7 +5,7 @@ class ProductService {
         return api.get("/product/list", { params: query });
     };
     add = (formData) => {
-        return api.post("/product", formData);
+        return api.post("/product/add", formData);
     };
     update = (formData) => {
         return api.put("/product", formData);

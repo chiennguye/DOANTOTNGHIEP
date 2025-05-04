@@ -27,4 +27,7 @@ public class ProducUpdatetRequest {
 
     private MultipartFile multipartFile;
 
+    private Integer initialQuantity;
+    private Integer minimumQuantity;
+
 }

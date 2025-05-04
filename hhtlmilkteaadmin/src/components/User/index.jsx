@@ -152,13 +152,13 @@ const User = () => {
   };
 
   const fields = [
-    { lable: "Hình Ảnh" },
-    { name: "username", lable: "Tài Khoản", dir: "asc" },
-    { name: "fullName", lable: "Họ & Tên", dir: "asc" },
-    { name: "phone", lable: "Số Điện Thoại", dir: "asc" },
-    { name: "email", lable: "Email", dir: "asc" },
-    { lable: "Trạng Thái" },
-    { lable: "Hành Động" },
+    { id: 'image', label: 'Hình Ảnh', disableSorting: true },
+    { id: 'username', label: 'Tài Khoản', disableSorting: false },
+    { id: 'fullName', label: 'Họ & Tên', disableSorting: false },
+    { id: 'phone', label: 'Số Điện Thoại', disableSorting: false },
+    { id: 'email', label: 'Email', disableSorting: false },
+    { id: 'status', label: 'Trạng Thái', disableSorting: true },
+    { id: 'actions', label: 'Hành Động', disableSorting: true },
   ];
 
   return (

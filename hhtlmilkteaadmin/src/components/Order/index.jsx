@@ -258,13 +258,13 @@ const Order = () => {
     };
 
     const fields = [
-        { name: "id", lable: "Số Hóa Đơn", dir: "desc" },
-        { name: "createdAt", lable: "Ngày đặt hàng", dir: "asc" },
-        { name: "userId", lable: "Khách hàng", dir: "asc" },
-        { name: "payment", lable: "Thanh toán", dir: "asc" },
-        { name: "totalPrice", lable: "Tổng tiền", dir: "asc" },
-        { lable: "Trạng Thái" },
-        { lable: "Hành Động" },
+        { id: 'id', label: 'Số Hóa Đơn', disableSorting: false },
+        { id: 'createdAt', label: 'Ngày đặt hàng', disableSorting: false },
+        { id: 'userId', label: 'Khách hàng', disableSorting: false },
+        { id: 'payment', label: 'Thanh toán', disableSorting: false },
+        { id: 'totalPrice', label: 'Tổng tiền', disableSorting: false },
+        { id: 'status', label: 'Trạng Thái', disableSorting: true },
+        { id: 'actions', label: 'Hành Động', disableSorting: true },
     ];
 
     const handleOnDelete = (id) => {

@@ -16,82 +16,65 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="product")
+@Table(name = "product")
 public class Product implements Serializable {
 
-    @Id
-    private String id; // Sử dụng P + getTime()
+        @Id
+        private String id; // Sử dụng P + getTime()
 
-    private String name;
-    private String title;
+        private String name;
+        private String title;
 
-    private String linkImage;
-    private String nameImage;
-    private long price;
+        private String linkImage;
+        private String nameImage;
+        private long price;
 
-    @CreationTimestamp
-    private Date createdAt;
+        @CreationTimestamp
+        private Date createdAt;
 
-    @CreationTimestamp
-    private Date updatedAt;
+        @CreationTimestamp
+        private Date updatedAt;
 
-    private Date deletedAt;
+        private Date deletedAt;
 
-    @ManyToOne
-    @JoinColumn(
-            name = "category_id",
-            referencedColumnName = "id",
-            nullable = false
-    )
-    @JsonIgnoreProperties("products")
-    private Category category;
+        @ManyToOne
+        @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
+        @JsonIgnoreProperties("products")
+        private Category category;
 
-    @OneToOne(
-            mappedBy = "product",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL
-    )
-    private SaleOff saleOff;
+        @OneToOne(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+        private SaleOff saleOff;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "product_sizeoption",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "sizeoption_id")
-    )
-    private Set<SizeOption> sizeOptions;
+        @OneToOne(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+        private ProductInventory inventory;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "product_additionoption",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "additionoption_id")
-    )
-    private Set<AdditionOption> additionOptions;
+        @ManyToMany(fetch = FetchType.LAZY)
+        @JoinTable(name = "product_sizeoption", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "sizeoption_id"))
+        private Set<SizeOption> sizeOptions;
 
-    @OneToMany(
-            mappedBy = "product"
-    )
-    @JsonIgnore
-    private Collection<OrderDetail> orderDetails;
+        @ManyToMany(fetch = FetchType.LAZY)
+        @JoinTable(name = "product_additionoption", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "additionoption_id"))
+        private Set<AdditionOption> additionOptions;
 
-    @OneToMany(
-            mappedBy = "product"
-    )
-    @JsonIgnore
-    private Collection<GroupOrderDetails> groupOrderDetails;
+        @OneToMany(mappedBy = "product")
+        @JsonIgnore
+        private Collection<OrderDetail> orderDetails;
 
-    public Product(String id, String name, String title, String linkImage, String nameImage, long price,
-                   Category category, Set<SizeOption> sizeOptions, Set<AdditionOption> additionOptions) {
-        this.id = id;
-        this.name = name;
-        this.title = title;
-        this.linkImage = linkImage;
-        this.nameImage = nameImage;
-        this.price = price;
-        this.category = category;
-        this.sizeOptions = sizeOptions;
-        this.additionOptions = additionOptions;
-//        this.saleOff = saleOff;
-    }
+        @OneToMany(mappedBy = "product")
+        @JsonIgnore
+        private Collection<GroupOrderDetails> groupOrderDetails;
+
+        public Product(String id, String name, String title, String linkImage, String nameImage, long price,
+                        Category category, Set<SizeOption> sizeOptions, Set<AdditionOption> additionOptions) {
+                this.id = id;
+                this.name = name;
+                this.title = title;
+                this.linkImage = linkImage;
+                this.nameImage = nameImage;
+                this.price = price;
+                this.category = category;
+                this.sizeOptions = sizeOptions;
+                this.additionOptions = additionOptions;
+                // this.saleOff = saleOff;
+        }
 }

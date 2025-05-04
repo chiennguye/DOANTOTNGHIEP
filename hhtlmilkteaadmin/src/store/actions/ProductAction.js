@@ -13,54 +13,88 @@ export const ProductGetAll = (query) => async (dispatch) => {
 
 export const addProduct = (data) => async (dispatch) => {
   try {
+    console.log("Raw data received:", data);
+    
     const formData = new FormData();
-    formData.append(`multipartFile`, data.multipartFile)
-    formData.append("name", data.name)
-    formData.append("title", data.title)
-    formData.append("price", data.price)
-    formData.append("quantity", data.quantity)
-    formData.append("category", JSON.stringify(data.category))
+    formData.append("name", data.name);
+    formData.append("title", data.title);
+    formData.append("price", data.price);
+    formData.append("category", data.category);
+    formData.append("multipartFile", data.multipartFile);
 
-    for (let i = 0; i < data.additionOptions.length; i++) {
-      formData.append(`additionOptions[${i}]`, JSON.stringify(data.additionOptions[i]))
+    // Always send initialQuantity and minimumQuantity if present
+    if (data.initialQuantity !== undefined && data.initialQuantity !== "") {
+      formData.append("initialQuantity", data.initialQuantity);
+    }
+    if (data.minimumQuantity !== undefined && data.minimumQuantity !== "") {
+      formData.append("minimumQuantity", data.minimumQuantity);
     }
 
-    for (let i = 0; i < data.sizeOptions.length; i++) {
-      formData.append(`sizeOptions[${i}]`, JSON.stringify(data.sizeOptions[i]))
+    // Gửi đúng tên trường backend mong đợi
+    if (data.additionOptionsList && data.additionOptionsList.length > 0) {
+      data.additionOptionsList.forEach(obj => {
+        formData.append("additionOptionsList", JSON.stringify(obj));
+      });
+    }
+    if (data.sizeOptionsList && data.sizeOptionsList.length > 0) {
+      data.sizeOptionsList.forEach(obj => {
+        formData.append("sizeOptionsList", JSON.stringify(obj));
+      });
+    }
+
+    // Log final formData
+    console.log("Final FormData:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
     }
 
     const res = await ProductService.add(formData);
-
     dispatch(productAdded(res.data));
+    return res.data;
   } catch (e) {
-    return console.error(e);
+    console.error("Error adding product:", e);
+    throw e;
   }
 };
 
 export const updateProduct = (data) => async (dispatch) => {
   try {
     const formData = new FormData();
-    formData.append("id", data.id)
+    formData.append("id", data.id);
     if (data.multipartFile) {
-      formData.append("multipartFile", data.multipartFile)
+      formData.append("multipartFile", data.multipartFile);
     }
-    formData.append("name", data.name)
-    formData.append("title", data.title)
-    formData.append("price", data.price)
-    formData.append("quantity", data.quantity)
-    formData.append("category", JSON.stringify(data.category))
+    formData.append("name", data.name);
+    formData.append("title", data.title);
+    formData.append("price", data.price);
+    formData.append("category", data.category.id);
 
-    for (let i = 0; i < data.additionOptions.length; i++) {
-      formData.append(`additionOptions[${i}]`, JSON.stringify(data.additionOptions[i]))
-    }
-
-    for (let i = 0; i < data.sizeOptions.length; i++) {
-      formData.append(`sizeOptions[${i}]`, JSON.stringify(data.sizeOptions[i]))
+    // Phân biệt luồng Snack/Product và loại khác
+    if (data.category.name === "Snack" || data.category.name === "Product") {
+      // Chỉ gửi initialQuantity và minimumQuantity
+      if (data.initialQuantity !== undefined && data.initialQuantity !== "") {
+        formData.append("initialQuantity", data.initialQuantity);
+      }
+      if (data.minimumQuantity !== undefined && data.minimumQuantity !== "") {
+        formData.append("minimumQuantity", data.minimumQuantity);
+      }
+    } else {
+      // Chỉ gửi size/topping
+      if (data.additionOptions && data.additionOptions.length > 0) {
+        data.additionOptions.forEach(obj => {
+          formData.append("additionOptions", JSON.stringify(obj));
+        });
+      }
+      if (data.sizeOptions && data.sizeOptions.length > 0) {
+        data.sizeOptions.forEach(obj => {
+          formData.append("sizeOptions", JSON.stringify(obj));
+        });
+      }
     }
 
     const res = await ProductService.update(formData);
-
     dispatch(productUpdate(res.data));
+    return res.data;
   } catch (e) {
     return console.error(e);
   }

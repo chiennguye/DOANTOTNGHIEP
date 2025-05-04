@@ -89,6 +89,8 @@ const EditProduct = () => {
   const [product] = useState(location.state?.product || {});
 
   const [cate, setCate] = useState(product?.category?.name || '');
+  const [initialQuantity, setInitialQuantity] = useState(product?.inventory?.quantity ?? '');
+  const [minimumQuantity, setMinimumQuantity] = useState(product?.inventory?.minimumQuantity ?? '');
 
   const {
     register,
@@ -134,8 +136,14 @@ const EditProduct = () => {
         return;
       }
       
-      data.additionOptions = right;
-      data.sizeOptions = rightSize;
+      // Chuyển đổi additionOptions và sizeOptions thành mảng các object {id} nếu không phải Snack/Product
+      if (!(data.category.name === "Snack" || data.category.name === "Product")) {
+        data.additionOptions = right.map(item => ({ id: item.id }));
+        data.sizeOptions = rightSize.map(item => ({ id: item.id }));
+      } else {
+        data.additionOptions = [];
+        data.sizeOptions = [];
+      }
       data.multipartFile = data.multipartFile[0] ? data.multipartFile[0] : null;
       
       setOpenBD(true);
@@ -460,83 +468,110 @@ const EditProduct = () => {
                   )}
                 </FormControl>
 
-                <div style={{ marginTop: 20 }}>
-                  <div style={{ display: "flex" }}>
-                    <Typography>Kích thước:</Typography>
-                    <div style={{ marginBottom: 10 }}>
-                      {rightSize.length > 0 ? (
-                        rightSize.map((item) => (
-                          <Chip
-                            style={{
-                              marginTop: -5,
-                              marginLeft: 10,
-                              marginBottom: 10,
-                            }}
-                            variant="outlined"
-                            label={item.name}
-                            key={item.id}
-                            onDelete={() => handleRemoveSize(item.id)}
-                          />
-                        ))
-                      ) : (
-                        <Chip
-                          style={{ marginTop: -5, marginLeft: 10 }}
-                          icon={<ErrorOutline />}
-                          label="Chưa thêm kích thước"
-                          color="secondary"
-                          variant="outlined"
-                        />
-                      )}
+                {(cate === "Snack" || cate === "Product") ? (
+                  <>
+                    <TextField
+                      label="Số lượng hàng"
+                      type="number"
+                      name="initialQuantity"
+                      defaultValue={initialQuantity}
+                      onChange={e => setInitialQuantity(e.target.value)}
+                      fullWidth
+                      style={{ marginTop: 10 }}
+                      inputRef={register({ required: true })}
+                    />
+                    <TextField
+                      label="Số lượng tối thiểu"
+                      type="number"
+                      name="minimumQuantity"
+                      defaultValue={minimumQuantity}
+                      onChange={e => setMinimumQuantity(e.target.value)}
+                      fullWidth
+                      style={{ marginTop: 10 }}
+                      inputRef={register({ required: true })}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ display: "flex" }}>
+                        <Typography>Kích thước:</Typography>
+                        <div style={{ marginBottom: 10 }}>
+                          {rightSize.length > 0 ? (
+                            rightSize.map((item) => (
+                              <Chip
+                                style={{
+                                  marginTop: -5,
+                                  marginLeft: 10,
+                                  marginBottom: 10,
+                                }}
+                                variant="outlined"
+                                label={item.name}
+                                key={item.id}
+                                onDelete={() => handleRemoveSize(item.id)}
+                              />
+                            ))
+                          ) : (
+                            <Chip
+                              style={{ marginTop: -5, marginLeft: 10 }}
+                              icon={<ErrorOutline />}
+                              label="Chưa thêm kích thước"
+                              color="secondary"
+                              variant="outlined"
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        disabled={cate === "default" || cate === "Snack" || cate === "Product"}
+                        color="primary"
+                        variant="contained"
+                        onClick={handleOpenAddSize}
+                      >
+                        Thêm kích thước
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    disabled={(Object.is(cate, "default") || Object.is(cate, "Snack") || Object.is(cate, "Product")) ? true : false}
-                    color="primary"
-                    variant="contained"
-                    onClick={handleOpenAddSize}
-                  >
-                    Thêm kích thước
-                  </Button>
-                </div>
 
-                <div style={{ marginTop: 20 }}>
-                  <div style={{ display: "flex" }}>
-                    <Typography>Topping:</Typography>
-                    <div style={{ marginBottom: 10 }}>
-                      {right.length > 0 ? (
-                        right.map((item) => (
-                          <Chip
-                            style={{
-                              marginTop: -5,
-                              marginLeft: 10,
-                              marginBottom: 10,
-                            }}
-                            variant="outlined"
-                            label={item.name}
-                            key={item.id}
-                            onDelete={() => handleRemoveAdd(item.id)}
-                          />
-                        ))
-                      ) : (
-                        <Chip
-                          style={{ marginTop: -5, marginLeft: 10 }}
-                          icon={<ErrorOutline />}
-                          label="Chưa thêm topping"
-                          variant="outlined"
-                          color="secondary"
-                        />
-                      )}
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ display: "flex" }}>
+                        <Typography>Topping:</Typography>
+                        <div style={{ marginBottom: 10 }}>
+                          {right.length > 0 ? (
+                            right.map((item) => (
+                              <Chip
+                                style={{
+                                  marginTop: -5,
+                                  marginLeft: 10,
+                                  marginBottom: 10,
+                                }}
+                                variant="outlined"
+                                label={item.name}
+                                key={item.id}
+                                onDelete={() => handleRemoveAdd(item.id)}
+                              />
+                            ))
+                          ) : (
+                            <Chip
+                              style={{ marginTop: -5, marginLeft: 10 }}
+                              icon={<ErrorOutline />}
+                              label="Chưa thêm topping"
+                              variant="outlined"
+                              color="secondary"
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        disabled={cate === "default" || cate === "Snack" || cate === "Product"}
+                        color="primary"
+                        variant="contained"
+                        onClick={handleOpenAdd}
+                      >
+                        Thêm topping
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    disabled={(Object.is(cate, "default") || Object.is(cate, "Snack") || Object.is(cate, "Product")) ? true : false}
-                    color="primary"
-                    variant="contained"
-                    onClick={handleOpenAdd}
-                  >
-                    Thêm topping
-                  </Button>
-                </div>
+                  </>
+                )}
               </Grid>
 
               <Grid item md={4} xs={12}>
@@ -743,14 +778,22 @@ const EditProduct = () => {
               <CircularProgress color="inherit" />
             </Backdrop>
 
-            <Button
-              type="submit"
-              color="primary"
-              variant="contained"
-              style={{ marginTop: 20, marginLeft: "50%" }}
-            >
-              Cập nhật
-            </Button>
+            <div style={{ display: "flex", gap: 16, marginTop: 20, marginLeft: "50%" }}>
+              <Button
+                type="submit"
+                color="primary"
+                variant="contained"
+              >
+                Cập nhật
+              </Button>
+              <Button
+                variant="contained"
+                color="default"
+                onClick={() => window.history.back()}
+              >
+                Quay lại
+              </Button>
+            </div>
           </form>
         </Grid>
       </Grid>

@@ -137,12 +137,14 @@ const AdditionOption = () => {
     });
   };
 
+  // ... existing code ...
   const fields = [
-    { name: "name", lable: "Tên Topping", dir: "asc" },
-    { name: "price", lable: "Giá", dir: "asc" },
-    { lable: "Trạng thái" },
-    { lable: "Hành Động" },
+    { id: 'name', label: 'Tên Topping', disableSorting: false },
+    { id: 'price', label: 'Giá', disableSorting: false },
+    { id: 'status', label: 'Trạng Thái', disableSorting: true },
+    { id: 'actions', label: 'Hành Động', disableSorting: true },
   ];
+// ... existing code ...
 
   return (
     <div>
