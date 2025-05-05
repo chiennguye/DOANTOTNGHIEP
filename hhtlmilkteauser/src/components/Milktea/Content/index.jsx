@@ -13,6 +13,7 @@ import {
   TextField,
   Dialog,
   DialogContent,
+  Fab,
 } from "@material-ui/core";
 import productImg from "./../../../assets/img/product.png";
 import IconButton from "@material-ui/core/IconButton";
@@ -28,6 +29,7 @@ import { CategoryListAction } from "../../../store/actions/CategoryAction";
 import { OrderAddAction } from "../../../store/actions/OrderAction";
 import { udpateWishlist } from "../../../store/actions/UserAction";
 import { GroupOrderAddAction } from "./../../../store/actions/GroupOrderAction.js";
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 
 const useStyles = makeStyles((theme) => ({
   cardGrid: {
@@ -175,11 +177,27 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "#0c713d",
     color: "white",
   },
+  scrollTopButton: {
+    position: 'fixed',
+    bottom: theme.spacing(2),
+    right: theme.spacing(4.2),
+    zIndex: 10,
+    backgroundColor: '#0c713d',
+    color: 'white',
+    width: 50,
+    height: 50,
+    '&:hover': {
+      backgroundColor: '#0a5c32',
+    },
+    marginBottom: 80,
+    transform: 'translateX(0)',
+  },
 }));
 
 const Content = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const { products, newProductId } = useSelector((state) => state.product);
 
@@ -226,6 +244,26 @@ const Content = () => {
       })
     );
   }, [dispatch, valueToOrderBy, valueToSortDir, keyword, valueCategory]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.pageYOffset > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   const handleClickOpen = (item) => {
     if (
@@ -801,6 +839,17 @@ const Content = () => {
           </DialogContent>
         </form>
       </Dialog>
+
+      {showScrollTop && (
+        <Fab 
+          size="small" 
+          className={classes.scrollTopButton}
+          onClick={scrollToTop}
+          aria-label="scroll to top"
+        >
+          <KeyboardArrowUpIcon />
+        </Fab>
+      )}
     </Container>
   );
 };

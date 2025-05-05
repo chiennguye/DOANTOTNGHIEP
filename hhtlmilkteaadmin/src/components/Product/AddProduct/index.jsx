@@ -129,7 +129,21 @@ const AddProduct = () => {
             history.push("/product");
         } catch (error) {
             console.error("Error:", error);
-            Notification.error("Thêm sản phẩm thất bại. Vui lòng thử lại!");
+            let errorMessage = "Thêm sản phẩm thất bại. ";
+            
+            if (error.response) {
+                if (error.response.data) {
+                    errorMessage += error.response.data;
+                } else if (error.response.status === 413) {
+                    errorMessage += "Kích thước ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn.";
+                } else if (error.response.status === 415) {
+                    errorMessage += "Định dạng ảnh không hợp lệ. Vui lòng chọn ảnh có định dạng JPG, PNG hoặc JPEG.";
+                }
+            } else if (error.message) {
+                errorMessage += error.message;
+            }
+            
+            Notification.error(errorMessage);
         } finally {
             setOpenBD(false);
         }

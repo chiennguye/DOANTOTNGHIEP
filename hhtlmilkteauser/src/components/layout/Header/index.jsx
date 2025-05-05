@@ -783,7 +783,7 @@ const Header = ({ isOpen, onHandleOpen }) => {
             to="/milktea"
             style={{ textDecoration: "none", color: "black" }}
           >
-            <MenuItem>Tìm kiếm trà</MenuItem>
+            <MenuItem>Tìm kiếm đồ uống</MenuItem>
           </Link>
           <Link
             to="/product"

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -7,7 +7,7 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
-import { Button, CssBaseline, Grid, Typography } from "@material-ui/core";
+import { Button, CssBaseline, Grid, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from "@material-ui/core";
 import { useDispatch, useSelector } from "react-redux";
 import { Add, DeleteOutline, Remove } from "@material-ui/icons";
 import {
@@ -69,6 +69,7 @@ const ShoppingCart = () => {
   const dispatch = useDispatch();
   const { order, totalPrice } = useSelector((state) => state.order);
   const auth = useSelector((state) => state.auth);
+  const [openDialog, setOpenDialog] = useState(false);
 
   //support group member
 
@@ -103,11 +104,25 @@ const ShoppingCart = () => {
     }
   }, [auth?.user?.token, auth?.user?.username, dispatch, order, order?.id]);
 
+  const checkStoreHours = () => {
+    const now = new Date();
+     const testHour = null;
+     const currentHour = testHour || now.getHours();
+    return currentHour >= 6 && currentHour < 23;
+  };
+
   const onHandleRedirectCheckout = () => {
-    // localStorage.setItem("check", "true")
+    if (!checkStoreHours()) {
+      setOpenDialog(true);
+      return;
+    }
     window.location.href = "/checkout";
     localStorage.setItem("map", "refresh");
     localStorage.removeItem("group");
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
   };
 
   const onHandleUpdateQuantity = (orderDetailId, action) => {
@@ -284,6 +299,27 @@ const ShoppingCart = () => {
           </React.Fragment>
         </Paper>
       </main>
+
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title" style={{ color: "#d32f2f" }}>
+          Thông báo
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" style={{ fontSize: '16px' }}>
+            Quán chúng tôi đã đóng cửa. Mời bạn quay lại vào 6h sáng mai!
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary" autoFocus>
+            Đã hiểu
+          </Button>
+        </DialogActions>
+      </Dialog>
     </React.Fragment>
   );
 };

@@ -331,9 +331,12 @@ public class ProductController {
             @RequestParam(defaultValue = "") String keyword) {
         ProductResponse productResponse = new ProductResponse();
         List<Product> products;
+
+        // Lấy danh sách sản phẩm mới dựa trên thời gian tạo
         List<Product> productNew = productRepository.findProductsByCategory_NameNotLikeAndCategory_NameNotLike("Snack",
-                "Product", Sort.by(Sort.Direction.DESC, "id"));
-        productNew.stream().filter(p -> p.getCategory().getDeletedAt() == null && p.getDeletedAt() == null)
+                "Product", Sort.by(Sort.Direction.DESC, "createdAt"));
+        productNew = productNew.stream()
+                .filter(p -> p.getCategory().getDeletedAt() == null && p.getDeletedAt() == null)
                 .collect(Collectors.toList());
 
         if ("".equals(cateName)) {
@@ -352,6 +355,7 @@ public class ProductController {
                     .collect(Collectors.toList());
         }
 
+        // Lấy ID của sản phẩm mới nhất dựa trên thời gian tạo
         String newProductId = productNew.size() > 0 ? productNew.get(0).getId() : "";
 
         if (!"".equals(keyword)) {

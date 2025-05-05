@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import voucher from "./../../../assets/img/voucher.jpg";
 import {
@@ -17,7 +17,6 @@ import {
   VoucherCheckCodeAction,
 } from "./../../../store/actions/VoucherAction";
 import moment from "moment";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Notification from "./../../../common/Notification";
 
@@ -46,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
     flex: "1 0 auto",
   },
   cover: {
-    width: 151,
+    width: 200,
   },
   voucher: {
     paddingRight: 20,
@@ -59,27 +58,67 @@ const useStyles = makeStyles((theme) => ({
       marginLeft: "10%",
     },
   },
+  pointsAnimation: {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    fontSize: "2rem",
+    fontWeight: "bold",
+    color: "#4CAF50",
+    animation: "$floatUp 2s ease-out forwards",
+    zIndex: 1000,
+  },
+  "@keyframes floatUp": {
+    "0%": {
+      opacity: 1,
+      transform: "translate(-50%, -50%)",
+    },
+    "100%": {
+      opacity: 0,
+      transform: "translate(-50%, -150%)",
+    },
+  },
+  remainingDays: {
+    color: "#f44336",
+    fontWeight: "bold",
+  },
 }));
 
 const Voucher = () => {
   const classes = useStyles();
-
   const dispatch = useDispatch();
   const { vouchers } = useSelector((state) => state.voucher);
   const { user } = useSelector((state) => state.auth);
   const { handleSubmit, errors, register } = useForm();
   const [message, setMessage] = useState("");
+  const [showPoints, setShowPoints] = useState(null);
 
   useEffect(() => {
     VoucherListAction(user?.username)(dispatch);
   }, [dispatch, user?.username]);
 
+  const calculateRemainingDays = (endDate) => {
+    const today = moment();
+    const end = moment(endDate);
+    const remainingDays = end.diff(today, 'days');
+    return remainingDays;
+  };
+
   const onSubmit = (data) => {
     data.id = user.id;
     data.username = user.username;
-    VoucherCheckCodeAction(data)(dispatch).then((res) =>
-      setMessage(res?.message)
-    );
+    VoucherCheckCodeAction(data)(dispatch).then((res) => {
+      setMessage(res?.message);
+      if (res?.message === "Mã được sử dụng thành công") {
+        // Find the used voucher to get its points
+        const usedVoucher = vouchers.find(v => v.name === data.code);
+        if (usedVoucher) {
+          setShowPoints(usedVoucher.mark);
+          setTimeout(() => setShowPoints(null), 2000);
+        }
+      }
+    });
   };
 
   const handleCode = (data) => {
@@ -89,6 +128,11 @@ const Voucher = () => {
 
   return (
     <React.Fragment>
+      {showPoints && (
+        <div className={classes.pointsAnimation}>
+          +{showPoints} điểm
+        </div>
+      )}
       <div className={classes.header}>
         <div>
           <Typography variant="h6">VOUCHER</Typography>
@@ -102,7 +146,7 @@ const Voucher = () => {
             <div>
               {message && (
                 <FormHelperText
-                  style={{ color: "red" }}
+                  style={{ color: message.includes("thành công") ? "green" : "red" }}
                   id="component-error-text"
                 >
                   {message}
@@ -150,38 +194,46 @@ const Voucher = () => {
         }}
       >
         {vouchers &&
-          vouchers.map((item, index) => (
-            <Grid
-              key={index}
-              item
-              md={6}
-              xs={12}
-              sm={12}
-              className={classes.voucher}
-            >
-              <Card
-                className={classes.root}
-                onClick={() => handleCode(item.name)}
+          vouchers.map((item, index) => {
+            const remainingDays = calculateRemainingDays(item.endDate);
+            return (
+              <Grid
+                key={index}
+                item
+                md={6}
+                xs={12}
+                sm={12}
+                className={classes.voucher}
               >
-                <CardMedia
-                  className={classes.cover}
-                  image={voucher}
-                  title="Voucher 2021"
-                />
-                <div className={classes.details}>
-                  <CardContent className={classes.content}>
-                    <Typography component="h5" variant="h5">
-                      {item.name}
-                    </Typography>
-
-                    <Typography variant="subtitle1" color="textSecondary">
-                      Hạn sử dụng: {moment(item.endDate).format("DD-MM-YYYY")}
-                    </Typography>
-                  </CardContent>
-                </div>
-              </Card>
-            </Grid>
-          ))}
+                <Card
+                  className={classes.root}
+                  onClick={() => handleCode(item.name)}
+                >
+                  <CardMedia
+                    className={classes.cover}
+                    image={voucher}
+                    title="Voucher 2025"
+                  />
+                  <div className={classes.details}>
+                    <CardContent className={classes.content}>
+                      <Typography component="h5" variant="h5">
+                        {item.name}
+                      </Typography>
+                      <Typography variant="subtitle1" color="textSecondary">
+                        Hạn sử dụng: {moment(item.endDate).format("DD-MM-YYYY")}
+                      </Typography>
+                      <Typography variant="subtitle2" color="primary">
+                        Giá trị: {item.mark} điểm
+                      </Typography>
+                      <Typography variant="subtitle2" className={classes.remainingDays}>
+                        Còn lại: {remainingDays} ngày
+                      </Typography>
+                    </CardContent>
+                  </div>
+                </Card>
+              </Grid>
+            );
+          })}
       </Grid>
     </React.Fragment>
   );
