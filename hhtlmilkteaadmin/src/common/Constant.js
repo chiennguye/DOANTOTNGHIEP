@@ -6,7 +6,7 @@ export const SPINNER_NOTIFICATION_WARN = "Đã xoá thành công!";
 export const SPINNER_ERROR_LABLE = "Hãy nhập nhãn quay!";
 export const SPINNER_LABLE = [
   "May mắn lần sau",
-  "Voucher",
+  "Mã đổi điểm",
   "10",
   "100",
   "1000",

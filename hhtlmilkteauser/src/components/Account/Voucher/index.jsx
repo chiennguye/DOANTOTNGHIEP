@@ -102,7 +102,12 @@ const Voucher = () => {
     const today = moment();
     const end = moment(endDate);
     const remainingDays = end.diff(today, 'days');
-    return remainingDays;
+    const remainingHours = end.diff(today, 'hours');
+    
+    if (remainingDays === 0) {
+      return `${remainingHours} giờ`;
+    }
+    return `${remainingDays} ngày`;
   };
 
   const onSubmit = (data) => {
@@ -135,9 +140,9 @@ const Voucher = () => {
       )}
       <div className={classes.header}>
         <div>
-          <Typography variant="h6">VOUCHER</Typography>
+          <Typography variant="h6">Mã đổi điểm</Typography>
           <Typography className={classes.title}>
-            Quản lý các voucher của bạn
+            Quản lý các mã đổi điểm của bạn
           </Typography>
         </div>
 
@@ -153,12 +158,12 @@ const Voucher = () => {
                 </FormHelperText>
               )}
               <TextField
-                label="Mã voucher"
+                label="Mã đổi điểm"
                 name="code"
                 inputRef={register({
                   required: {
                     value: true,
-                    message: "Bạn chưa nhập mã Voucher",
+                    message: "Bạn chưa nhập mã đổi điểm",
                   },
                 })}
               />
@@ -212,7 +217,7 @@ const Voucher = () => {
                   <CardMedia
                     className={classes.cover}
                     image={voucher}
-                    title="Voucher 2025"
+                    title="Mã đổi điểm 2025"
                   />
                   <div className={classes.details}>
                     <CardContent className={classes.content}>
@@ -226,7 +231,7 @@ const Voucher = () => {
                         Giá trị: {item.mark} điểm
                       </Typography>
                       <Typography variant="subtitle2" className={classes.remainingDays}>
-                        Còn lại: {remainingDays} ngày
+                        Còn lại: {remainingDays}
                       </Typography>
                     </CardContent>
                   </div>

@@ -40,7 +40,7 @@ api.interceptors.request.use(
     
     if (token && !isPublicRoute) {
       config.headers["Authorization"] = `Bearer ${token}`;
-      console.log("Đã thêm token vào header:", config.headers["Authorization"]);
+      // console.log("Đã thêm token vào header:", config.headers["Authorization"]);
     }
     
     return config;

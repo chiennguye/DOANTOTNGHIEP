@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles, Typography } from "@material-ui/core";
+import { makeStyles, Typography, Snackbar, Fade } from "@material-ui/core";
 import WheelComponent from "react-wheel-of-prizes";
 import "react-wheel-of-prizes/dist/index.css";
 import { Grid } from "@material-ui/core";
@@ -44,10 +44,41 @@ const useStyles = makeStyles((theme) => ({
       opacity: 0,
     },
   },
+  rewardSnackbar: {
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    fontSize: '1.2rem',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+  },
+  tableContainer: {
+    maxHeight: 400,
+    overflow: 'auto',
+    '&::-webkit-scrollbar': {
+      width: '8px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: '#f1f1f1',
+      borderRadius: '4px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: '#888',
+      borderRadius: '4px',
+      '&:hover': {
+        background: '#555',
+      },
+    },
+  },
 }));
 
 const Spinner = () => {
   const classes = useStyles();
+  const [showReward, setShowReward] = useState(false);
+  const [rewardMessage, setRewardMessage] = useState('');
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [dailySpins, setDailySpins] = useState(0);
+  const [lastSpinDate, setLastSpinDate] = useState('');
 
   const history = useHistory();
   const dispatch = useDispatch();
@@ -119,27 +150,55 @@ const Spinner = () => {
     setLoading(isLoading);
   }, [spinner]);
 
-  const onFinished = (winner) => {
-    // console.log({ customer, user });
+  // Add log to check wheels data
+  useEffect(() => {
+    console.log('Wheels data:', wheels);
+    console.log('Number of wheels:', wheels?.length);
+  }, [wheels]);
 
+  const onFinished = (winner) => {
+    setIsSpinning(false);
+    
     if (Object.is(winner, "May mắn lần sau")) {
       SpinnerUpdateMarkAction({
         id: user.id,
         username: user.username,
-      })(dispatch);
+      })(dispatch)
+      .then(response => {
+        if (response?.error) {
+          Notification.error(response.error);
+          return;
+        }
+        setRewardMessage("Chúc bạn may mắn lần sau!");
+        setShowReward(true);
+      })
+      .catch(error => {
+        Notification.error(error.message || "Có lỗi xảy ra!");
+      });
       return;
     }
 
-    if (Object.is(winner, "Voucher")) {
+    if (Object.is(winner, "Mã đổi điểm")) {
       WheelCreateAction({
         id: user.id,
         fullName: user.fullName,
         username: user.username,
-        reward: "Nhận được mã Voucher",
+        reward: "Nhận được mã đổi điểm",
         type: "voucher",
         mark: Math.floor(Math.random() * 10000) + 1,
-      })(dispatch);
-    } else if (!Object.is(winner, "Voucher")) {
+      })(dispatch)
+      .then(response => {
+        if (response?.error) {
+          Notification.error(response.error);
+          return;
+        }
+        setRewardMessage("Chúc mừng! Bạn đã nhận được một mã đổi điểm!");
+        setShowReward(true);
+      })
+      .catch(error => {
+        Notification.error(error.message || "Có lỗi xảy ra!");
+      });
+    } else if (!Object.is(winner, "voucher")) {
       WheelCreateAction({
         id: user.id,
         fullName: user.fullName,
@@ -147,8 +206,27 @@ const Spinner = () => {
         reward: `Nhận được ${winner} điểm`,
         type: "mark",
         mark: winner,
-      })(dispatch);
+      })(dispatch)
+      .then(response => {
+        if (response?.error) {
+          Notification.error(response.error);
+          return;
+        }
+        setRewardMessage(`Chúc mừng! Bạn đã nhận được ${winner} điểm!`);
+        setShowReward(true);
+      })
+      .catch(error => {
+        Notification.error(error.message || "Có lỗi xảy ra!");
+      });
     }
+  };
+
+  const handleCloseReward = () => {
+    setShowReward(false);
+  };
+
+  const handleSpin = () => {
+    setIsSpinning(true);
   };
 
   const handleCheckLogin = () => {
@@ -157,9 +235,27 @@ const Spinner = () => {
       return;
     }
 
-    if (!customer?.memberVip || customer?.memberVip?.mark < 1000) {
-      Notification.error("Số điểm của bạn không đủ để quay!");
+    // Check if it's a new day
+    const today = new Date().toDateString();
+    if (lastSpinDate !== today) {
+      setDailySpins(0);
+      setLastSpinDate(today);
     }
+
+    // Check daily spin limit
+    if (dailySpins >= 5) {
+      Notification.error("Bạn đã hết lượt quay trong ngày hôm nay!");
+      return;
+    }
+
+    if (!customer?.memberVip || customer?.memberVip?.mark < 500) {
+      Notification.error("Số điểm của bạn không đủ để quay!");
+      return;
+    }
+
+    // Increment daily spins
+    setDailySpins(prev => prev + 1);
+    handleSpin();
   };
 
   return (
@@ -171,7 +267,7 @@ const Spinner = () => {
         lg={6}
         style={{ position: "relative", zIndex: 2, cursor: "pointer" }}
       >
-        {customer?.memberVip?.mark > 1000 ? (
+        {customer?.memberVip?.mark > 500 ? (
           <div></div>
         ) : (
           <div className="overlay" onClick={() => handleCheckLogin()}></div>
@@ -189,6 +285,7 @@ const Spinner = () => {
             size={250}
             upDuration={100}
             downDuration={1000}
+            onSpin={handleSpin}
           />
         )}
       </Grid>
@@ -202,7 +299,7 @@ const Spinner = () => {
       >
         <Grid item md={12}>
           <Typography component="h6" variant="h6" style={{ color: "#006E4E" }}>
-            Thể lệ (1000 điểm/lần)
+            Thể lệ (500 điểm/lần)
           </Typography>
           <Typography component="p">
             <DoneIcon style={{ color: "red" }} />
@@ -220,6 +317,10 @@ const Spinner = () => {
             <DoneIcon style={{ color: "red" }} />
             Đăng ký ngay để tham gia vòng quay miễn phí.
           </Typography>
+          <Typography component="p">
+            <DoneIcon style={{ color: "red" }} />
+            Hãy đổi điểm bằng mã trong trang quản lý mã để tích được nhiều điểm hơn.
+          </Typography>
         </Grid>
         <Grid item md={12}>
           <Typography
@@ -229,7 +330,7 @@ const Spinner = () => {
           >
             LƯỢT QUAY GẦN ĐÂY
           </Typography>
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} className={classes.tableContainer}>
             <Table className={classes.table} aria-label="simple table">
               <TableHead>
                 <TableRow>
@@ -240,7 +341,7 @@ const Spinner = () => {
               </TableHead>
               <TableBody>
                 {wheels &&
-                  wheels.map((w, index) => (
+                  wheels.slice(0, 10).map((w, index) => (
                     <TableRow key={index}>
                       <TableCell>{w.fullName}</TableCell>
                       <TableCell>{w.reward}</TableCell>
@@ -254,6 +355,18 @@ const Spinner = () => {
           </TableContainer>
         </Grid>
       </Grid>
+
+      <Snackbar
+        open={showReward}
+        autoHideDuration={3000}
+        onClose={handleCloseReward}
+        TransitionComponent={Fade}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <div className={classes.rewardSnackbar}>
+          {rewardMessage}
+        </div>
+      </Snackbar>
     </Grid>
   );
 };

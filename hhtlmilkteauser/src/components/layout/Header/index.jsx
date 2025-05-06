@@ -709,7 +709,7 @@ const Header = ({ isOpen, onHandleOpen }) => {
                       to="/account/voucher"
                       style={{ textDecoration: "none", color: "black" }}
                     >
-                      <MenuItem>Voucher</MenuItem>
+                      <MenuItem>Mã đổi điểm</MenuItem>
                     </Link>
                     <MenuItem onClick={onHandleLogout}>Đăng xuất</MenuItem>
                   </Menu>

@@ -141,7 +141,7 @@ const Account = () => {
                 <ListItemIcon>
                   <ConfirmationNumberOutlined style={{ color: "#f25634" }} />
                 </ListItemIcon>
-                <ListItemText primary="Voucher" />
+                <ListItemText primary="Mã đổi điểm của bạn" />
               </ListItem>
             </Link>
           </List>

@@ -60,7 +60,7 @@ public class WheelHistoryController {
 
         User user = userRepository.findByUsername(historyRequest.getUsername()).get();
         MemberVip memberVip = memberVipRepository.findByUser(user).get();
-        if(!historyRequest.getReward().equals("Nhận được mã Voucher")) {
+        if (!historyRequest.getReward().equals("Nhận được mã đổi điểm")) {
             memberVip.setMark(memberVip.getMark() - 1000);
             memberVip.setMark(memberVip.getMark() + historyRequest.getMark());
         } else {
@@ -85,13 +85,12 @@ public class WheelHistoryController {
         wheelHistoryResponse.setUser(userRepository.findByUsername(historyRequest.getUsername()).get());
         wheelHistoryResponse.setWheelHistories(wheelHistories);
 
-
         WishlistResponse wishlistResponse = new WishlistResponse();
         // Get all wishlist
         List<Wishlist> wishlists = wishlistRepository.findAllByUserId(historyRequest.getId());
         List<Product> products = new ArrayList<>();
 
-        for(Wishlist wl : wishlists) {
+        for (Wishlist wl : wishlists) {
             products.add(productRepository.findById(wl.getProductId()).get());
         }
 

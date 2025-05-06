@@ -15,7 +15,7 @@ const wheelSclice = createSlice({
 
       const listShow = [];
 
-      for (let i = 0; i <= 6; i++) {
+      for (let i = 0; i < Math.min(10, list.length); i++) {
         listShow.push(list[i]);
       }
 
