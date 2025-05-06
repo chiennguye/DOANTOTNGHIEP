@@ -1,4 +1,4 @@
-import { getListRevenue, getYears, getSumRevenues, getRevenueToday, getListLastFiveOrders } from "../reducers/RevenueReducer";
+import { getListRevenue, getYears, getSumRevenues, getRevenueToday, getListLastFiveOrders, getTodayOrders } from "../reducers/RevenueReducer";
 import RevenueService from "../../services/RevenueService";
 
 export const RevenueList = (query) => async (dispatch) => {
@@ -45,6 +45,16 @@ export const LastFiveOrders = () => async (dispatch) => {
     try {
         await RevenueService.getLastFiveOrders()
             .then((res) => dispatch(getListLastFiveOrders(res.data)))
+            .catch((err) => console.error(err));
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+export const TodayOrders = () => async (dispatch) => {
+    try {
+        await RevenueService.getTodayOrders()
+            .then((res) => dispatch(getTodayOrders(res.data)))
             .catch((err) => console.error(err));
     } catch (error) {
         console.error(error);

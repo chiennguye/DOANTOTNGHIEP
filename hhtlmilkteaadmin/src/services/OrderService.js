@@ -33,10 +33,12 @@ class OrderService {
 
     updateStatus = async (data) => {
         try {
+            console.log("Updating order status with data:", data);
             const response = await api.put("/order/status", data);
+            console.log("Update status response:", response.data);
             return response;
         } catch (error) {
-            console.error("Error updating order status:", error);
+            console.error("Error updating order status:", error.response?.data || error.message);
             throw error;
         }
     };

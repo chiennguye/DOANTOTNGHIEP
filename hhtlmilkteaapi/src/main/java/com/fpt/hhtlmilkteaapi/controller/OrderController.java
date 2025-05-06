@@ -8,6 +8,7 @@ import com.fpt.hhtlmilkteaapi.payload.response.CartResponse;
 import com.fpt.hhtlmilkteaapi.payload.response.MemberVipResponse;
 import com.fpt.hhtlmilkteaapi.payload.response.MessageResponse;
 import com.fpt.hhtlmilkteaapi.repository.*;
+import com.fpt.hhtlmilkteaapi.service.IOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import com.fpt.hhtlmilkteaapi.entity.Order;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Optional;
-
+import java.util.HashMap;
+import java.util.Map;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -42,7 +45,6 @@ public class OrderController {
 
     @Autowired
     private IUserRepository userRepository;
-
 
     @Autowired
     private IOrderDetailRepository orderDetailRepository;
@@ -56,12 +58,22 @@ public class OrderController {
     @Autowired
     private IGroupMemberRepository groupMemberRepository;
 
+    @Autowired
+    private IProductInventoryRepository productInventoryRepository;
+
+    @Autowired
+    private IOrderService orderService;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private INotificationRepository notificationRepository;
 
     @GetMapping("/list")
     public ResponseEntity<?> getOrders() {
         return ResponseEntity.ok(orderRepository.findAll());
     }
-
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -121,12 +133,14 @@ public class OrderController {
             orderRepository.save(orderNew);
         }
 
-        //Tạo OrderDetail
-        //Check neu orderdetail co product, add, size giong nhau thi cong quantity
+        // Tạo OrderDetail
+        // Check neu orderdetail co product, add, size giong nhau thi cong quantity
 
         if (orderNew.getOrderDetails() != null) {
 
-            OrderDetail orderDetail = orderDetailRepository.findByOrderId_IdAndProduct_IdAndAddOptionIdLikeAndSizeOptionIdLike(orderNew.getId(), product.getId(), add, size);
+            OrderDetail orderDetail = orderDetailRepository
+                    .findByOrderId_IdAndProduct_IdAndAddOptionIdLikeAndSizeOptionIdLike(orderNew.getId(),
+                            product.getId(), add, size);
 
             if (orderDetail != null) {
                 orderDetail.setQuantity(orderDetail.getQuantity() + quantity);
@@ -202,13 +216,11 @@ public class OrderController {
             @RequestParam(defaultValue = "3") int pageSize,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(defaultValue = "-1") long id
-    ) {
+            @RequestParam(defaultValue = "-1") long id) {
 
         Pageable pageable = PageRequest.of(
                 page - 1, pageSize,
-                "asc".equals(sortDir) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending()
-        );
+                "asc".equals(sortDir) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending());
 
         if (id == -1) {
             Page<Order> orders = orderRepository.findAllByStatusIn(Arrays.asList(1, 2), pageable);
@@ -229,13 +241,11 @@ public class OrderController {
             @RequestParam(defaultValue = "3") int pageSize,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(defaultValue = "-1") long id
-    ) {
+            @RequestParam(defaultValue = "-1") long id) {
 
         Pageable pageable = PageRequest.of(
                 page - 1, pageSize,
-                "asc".equals(sortDir) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending()
-        );
+                "asc".equals(sortDir) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending());
 
         if (id == -1) {
             Page<Order> orders = orderRepository.findAllByStatusIn(Arrays.asList(3), pageable);
@@ -256,13 +266,11 @@ public class OrderController {
             @RequestParam(defaultValue = "3") int pageSize,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(defaultValue = "-1") long id
-    ) {
+            @RequestParam(defaultValue = "-1") long id) {
 
         Pageable pageable = PageRequest.of(
                 page - 1, pageSize,
-                "asc".equals(sortDir) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending()
-        );
+                "asc".equals(sortDir) ? Sort.by(sortField).ascending() : Sort.by(sortField).descending());
 
         if (id == -1) {
             Page<Order> orders = orderRepository.findAllByStatusIn(Arrays.asList(4), pageable);
@@ -280,8 +288,7 @@ public class OrderController {
     @PutMapping("")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> updateQuantity(
-            @RequestBody OrderQuantityRequest orderQuantityRequest
-    ) {
+            @RequestBody OrderQuantityRequest orderQuantityRequest) {
         CartResponse cartResponse = new CartResponse();
         OrderDetail orderDetail = orderDetailRepository.findById(orderQuantityRequest.getOrderDetailId()).get();
         Order order = orderRepository.findById(orderDetail.getOrderId().getId()).get();
@@ -341,54 +348,58 @@ public class OrderController {
     @PutMapping("/status")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> updateStatus(@RequestBody OrderStatusRequest orderStatusRequest) {
+        try {
+            Order order = orderService.updateStatus(orderStatusRequest);
 
-        // Find user by username
-        Order order = orderRepository.findById(orderStatusRequest.getId()).get();
+            // Create notification based on status
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("timestamp", new Date().getTime());
+            notification.put("orderId", order.getId());
+            notification.put("recipientRole", "ADMIN"); // Add recipient role
 
-        // Get status request
-        int status = orderStatusRequest.getStatus();
-
-        // Check status and process
-        order.setStatus(status);
-        order.setDeletedAt(new Date());
-        orderRepository.save(order);
-
-        // Find totalPrice
-        long total = 0;
-        for (OrderDetail orderDetailnew : order.getOrderDetails()) {
-            total += (orderDetailnew.getPriceCurrent() * orderDetailnew.getQuantity());
-        }
-
-        //Update memberVip
-        if(status == 3) {
-            User user = userRepository.findById(order.getUserId().getId()).get();
-            MemberVip memberVip = user.getMemberVip();
-            if (memberVip == null) {
-            memberVip = new MemberVip(0, user);
+            switch (orderStatusRequest.getStatus()) {
+                case 1: // New order
+                    notification.put("type", "new_order");
+                    notification.put("message", "Có đơn hàng mới");
+                    // Save notification for admin
+                    notificationRepository.save(new Notification(
+                            String.valueOf(order.getId()),
+                            "new_order",
+                            "Có đơn hàng mới",
+                            "ADMIN",
+                            null));
+                    break;
+                case 2: // Shipping
+                    notification.put("type", "shipping");
+                    notification.put("message", "Đơn hàng đang được giao");
+                    // Save notification for shipper
+                    notificationRepository.save(new Notification(
+                            String.valueOf(order.getId()),
+                            "shipping",
+                            "Đơn hàng cần giao",
+                            "SHIPPER",
+                            null));
+                    break;
+                case 3: // Completed
+                    notification.put("type", "completed");
+                    notification.put("message", "Đơn hàng đã giao thành công");
+                    // Save notification for admin
+                    notificationRepository.save(new Notification(
+                            String.valueOf(order.getId()),
+                            "completed",
+                            "Đơn hàng đã giao thành công",
+                            "ADMIN",
+                            null));
+                    break;
             }
 
-            memberVip.setMark(memberVip.getMark() + total/100);
-        memberVipRepository.save(memberVip);
+            // Send notification to all admin users
+            messagingTemplate.convertAndSend("/message", notification);
 
-        user.setMemberVip(memberVip);
-        userRepository.save(user);
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        if(status == 4) {
-            User user = userRepository.findById(order.getUserId().getId()).get();
-            MemberVip memberVip = user.getMemberVip();
-            if (memberVip == null) {
-                memberVip = new MemberVip(0, user);
-            }
-
-            memberVip.setMark(memberVip.getMark() + order.getMemberVip());
-            memberVipRepository.save(memberVip);
-
-            user.setMemberVip(memberVip);
-            userRepository.save(user);
-        }
-
-        return ResponseEntity.ok(orderRepository.save(order));
     }
 
     @PutMapping("/checkout")
@@ -399,20 +410,20 @@ public class OrderController {
             return ResponseEntity.ok(new MessageResponse("Bad Request"));
         }
 
-        //find order
+        // find order
         Order order = orderRepository.findById(checkoutRequest.getOrderId()).get();
 
-        //get value
+        // get value
         String address = checkoutRequest.getAddress();
         String phone = checkoutRequest.getPhone();
         int payment = "cod".equals(checkoutRequest.getPayment()) ? 1 : 2;
         int shipping = checkoutRequest.getShipping();
         String note = checkoutRequest.getNote();
 
-        //Update order
-        if(payment == 1){
+        // Update order
+        if (payment == 1) {
             order.setStatus(1);
-        }else {
+        } else {
             order.setStatus(2);
         }
         order.setNotification(1);
@@ -426,16 +437,17 @@ public class OrderController {
         order.setMemberVip(checkoutRequest.getMemberVip());
         orderRepository.save(order);
 
-        //Update memberVip
+        // Update memberVip
         User user = userRepository.findById(order.getUserId().getId()).get();
         MemberVip memberVip = user.getMemberVip();
         if (memberVip == null) {
             memberVip = new MemberVip(0, user);
         }
 
-        if(payment == 2) {
-            memberVip.setMark(memberVip.getMark() + (checkoutRequest.getTotal() / 100) - checkoutRequest.getMemberVip());
-        }else{
+        if (payment == 2) {
+            memberVip
+                    .setMark(memberVip.getMark() + (checkoutRequest.getTotal() / 100) - checkoutRequest.getMemberVip());
+        } else {
             memberVip.setMark(memberVip.getMark() - checkoutRequest.getMemberVip());
         }
 
@@ -449,18 +461,17 @@ public class OrderController {
 
         // Delete long url
         List<Shorter> shorters = shorterRepository.findAllByLongUrlLike("%" + checkoutRequest.getOrderId() + "%");
-        if(shorters.size() > 0) {
+        if (shorters.size() > 0) {
             shorterRepository.delete(shorters.get(0));
         }
 
         // Delete member not group
-        if(!checkoutRequest.isTeam()) {
+        if (!checkoutRequest.isTeam()) {
             List<GroupMember> groupMembers = groupMemberRepository.findAllByOrder(order);
-            if(groupMembers.size() > 0) {
+            if (groupMembers.size() > 0) {
                 groupMemberRepository.deleteAll(groupMembers);
             }
         }
-
 
         return ResponseEntity.ok(memberVipResponse);
     }

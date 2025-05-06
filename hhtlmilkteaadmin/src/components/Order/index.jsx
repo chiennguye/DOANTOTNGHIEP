@@ -268,7 +268,7 @@ const Order = () => {
     ];
 
     const handleOnDelete = (id) => {
-        dispatch(OrderStatusUpdate({ id, status: 4 }));
+        dispatch(OrderStatusUpdate({ orderId: id, status: 4 }));
         Notification.success("Đã hủy thành công");
     };
 
@@ -289,7 +289,7 @@ const Order = () => {
     };
 
     const handleOnShippingStatus = (id) => {
-        dispatch(OrderStatusUpdate({ id, status: 2 }));
+        dispatch(OrderStatusUpdate({ orderId: id, status: 2 }));
         Notification.success("Đã cập nhật thành công");
     };
 
@@ -310,7 +310,7 @@ const Order = () => {
     };
 
     const handleOnCompleteStatus = (id) => {
-        dispatch(OrderStatusUpdate({ id, status: 3 }));
+        dispatch(OrderStatusUpdate({ orderId: id, status: 3 }));
         Notification.success("Đã cập nhật thành công");
     };
 

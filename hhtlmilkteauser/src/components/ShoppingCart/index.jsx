@@ -311,7 +311,7 @@ const ShoppingCart = () => {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" style={{ fontSize: '16px' }}>
-            Quán chúng tôi đã đóng cửa. Mời bạn quay lại vào 6h sáng mai!
+            Quán chúng tôi đang đóng cửa. Chúng tôi chỉ phục vụ từ 6h-23h hàng ngày. Mong quý khách hàng thông cảm !!!
           </Typography>
         </DialogContent>
         <DialogActions>

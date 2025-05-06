@@ -73,7 +73,7 @@ const Header = () => {
           >
             Trang chủ
           </Link>
-          <Typography color="textPrimary">Tráng miệng</Typography>
+          <Typography color="textPrimary">Đồ ăn nhâm nhi</Typography>
         </Breadcrumbs>
       </Grid>
 
@@ -91,7 +91,7 @@ const Header = () => {
             fontFamily: "lora",
           }}
         >
-          Tráng miệng
+          Đồ ăn nhâm nhi
         </Typography>
       </Grid>
       <Grid item md={12} xs={12}>

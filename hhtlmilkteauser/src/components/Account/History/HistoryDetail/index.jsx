@@ -435,7 +435,7 @@ const HistoryDetail = () => {
                         >
                           <b style={{ paddingRight: 45 }} translate="no">
                             {
-                              ((order.totalPrice - order.shipping + order.memberVip) / 1.05
+                              ((order.totalPrice - order.shipping + order.memberVip) / 1.01
                               ).toLocaleString("it-IT", {
                                 style: "currency",
                                 currency: "VND",
@@ -457,7 +457,7 @@ const HistoryDetail = () => {
                         >
                           <b style={{ paddingRight: 45 }} translate="no">
                             {
-                              ((order.totalPrice - order.shipping + order.memberVip) / 1.05 * 0.01
+                              ((order.totalPrice - order.shipping + order.memberVip) / 1.01 * 0.01
                               ).toLocaleString("it-IT", {
                                 style: "currency",
                                 currency: "VND",

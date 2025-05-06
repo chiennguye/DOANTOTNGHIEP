@@ -53,7 +53,7 @@ import { getRatings } from "../../../store/actions/RatingAction";
 const sections = [
   { title: "TRANG CHỦ", url: "/home" },
   { title: "ĐỒ UỐNG CÁC LOẠI", url: "/milktea" },
-  { title: "TRÁNG MIỆNG", url: "/dessert" },
+  { title: "ĐỒ ĂN NHÂM NHI", url: "/dessert" },
   { title: "SẢN PHẨM", url: "/product" },
   { title: "VÒNG QUAY MAY MẮN", url: "/spinner" },
   { title: "VỀ CHÚNG TÔI", url: "/about" },

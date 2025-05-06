@@ -11,7 +11,7 @@ import { Visibility, TrendingUp, LocalShipping } from '@material-ui/icons'
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 import BarCode from "react-barcode";
-import { LastFiveOrders, RevenueList } from '../../../store/actions/RevenueAction';
+import { LastFiveOrders, RevenueList, RevenueToday, TodayOrders } from '../../../store/actions/RevenueAction';
 import { useHistory } from 'react-router';
 
 const useStyles = makeStyles((theme) => ({
@@ -49,54 +49,36 @@ const useStyles = makeStyles((theme) => ({
 const Orders = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { listLastFiveOrders, revenueList } = useSelector((state) => state.revenue);
+  const { listLastFiveOrders, revenueToday, todayOrders } = useSelector((state) => state.revenue);
 
   useEffect(() => {
     dispatch(LastFiveOrders());
     dispatch(RevenueList({ year: new Date().getFullYear() }));
+    dispatch(RevenueToday());
+    dispatch(TodayOrders());
   }, [dispatch]);
 
   const history = useHistory();
 
-  // Calculate growth rate
-  const todayOrders = listLastFiveOrders.filter(order => 
-    moment(order.createdAt).isSame(moment(), 'day') && 
-    (order.status === 3 || order.payment === 2)
-  );
-  const todayRevenue = todayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
-  console.log('Today orders (completed + online paid):', todayOrders);
-  console.log('Today revenue:', todayRevenue);
-  console.log('Today date:', moment().format('YYYY-MM-DD'));
-
+  // Calculate yesterday's revenue for growth rate
   const yesterdayOrders = listLastFiveOrders.filter(order => 
-    moment(order.createdAt).isSame(moment().subtract(1, 'day'), 'day') && 
-    (order.status === 3 || order.payment === 2)
+    moment(order.createdAt).isSame(moment().subtract(1, 'day'), 'day')
   );
-  const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
-  console.log('Yesterday orders (completed + online paid):', yesterdayOrders);
-  console.log('Yesterday revenue:', yesterdayRevenue);
-  console.log('Yesterday date:', moment().subtract(1, 'day').format('YYYY-MM-DD'));
+  
+  const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => {
+    if (order.payment === 2 || order.status === 3) {
+      return sum + (order.totalPrice || 0);
+    }
+    return sum;
+  }, 0);
 
   // Calculate growth rate with absolute value to ensure positive percentage
   const growthRate = yesterdayRevenue ? 
-    Math.abs(((todayRevenue - yesterdayRevenue) / yesterdayRevenue * 100)).toFixed(2) : 0;
+    Math.abs(((revenueToday - yesterdayRevenue) / yesterdayRevenue * 100)).toFixed(2) : 0;
 
   // Add prefix + or - based on whether it's growth or decline
   const growthRateDisplay = yesterdayRevenue ? 
-    (todayRevenue > yesterdayRevenue ? '+' : '-') + growthRate : '0';
-  
-  console.log('Growth rate calculation:', {
-    todayRevenue,
-    yesterdayRevenue,
-    difference: todayRevenue - yesterdayRevenue,
-    growthRate,
-    growthRateDisplay
-  });
-
-  // Count today's orders (including all statuses)
-  const todayOrdersCount = listLastFiveOrders.filter(order => 
-    moment(order.createdAt).isSame(moment(), 'day')
-  ).length;
+    (revenueToday > yesterdayRevenue ? '+' : '-') + growthRate : '0';
 
   return (
     <React.Fragment>
@@ -107,7 +89,7 @@ const Orders = () => {
             <CardContent className={classes.cardContent}>
               <LocalShipping className={`${classes.icon} ${classes.ordersIcon}`} />
               <Typography variant="h5" component="h2">
-                {todayOrdersCount}
+                {todayOrders}
               </Typography>
               <Typography color="textSecondary">
                 Đơn hàng hôm nay
@@ -122,7 +104,7 @@ const Orders = () => {
             <CardContent className={classes.cardContent}>
               <TrendingUp className={`${classes.icon} ${classes.growthIcon}`} />
               <Typography variant="h5" component="h2">
-                {todayRevenue.toLocaleString('vi-VN', {
+                {revenueToday.toLocaleString('vi-VN', {
                   style: 'currency',
                   currency: 'VND'
                 })}

@@ -35,29 +35,61 @@ const OrderSlice = createSlice({
             state.listFail = action.payload.content;
         },
         onStatus: (state, action) => {
-            if(action.payload.status === 1){
-                const existingOrder = state.listProcess.find((order) => order.id === action.payload.id);
-                if(existingOrder){
-                    existingOrder.status = 1;
+            const orderId = action.payload.id;
+            const newStatus = action.payload.status;
+            
+            // Tìm đơn hàng trong tất cả các danh sách
+            let order = state.listProcess.find(o => o.id === orderId);
+            let sourceList = 'listProcess';
+            
+            if (!order) {
+                order = state.listShipping.find(o => o.id === orderId);
+                sourceList = 'listShipping';
+            }
+            
+            if (!order) {
+                order = state.listSuccess.find(o => o.id === orderId);
+                sourceList = 'listSuccess';
+            }
+            
+            if (!order) {
+                order = state.listFail.find(o => o.id === orderId);
+                sourceList = 'listFail';
+            }
+            
+            if (order) {
+                // Cập nhật trạng thái
+                order.status = newStatus;
+                
+                // Xóa đơn hàng khỏi danh sách hiện tại
+                switch(sourceList) {
+                    case 'listProcess':
+                        state.listProcess = state.listProcess.filter(o => o.id !== orderId);
+                        break;
+                    case 'listShipping':
+                        state.listShipping = state.listShipping.filter(o => o.id !== orderId);
+                        break;
+                    case 'listSuccess':
+                        state.listSuccess = state.listSuccess.filter(o => o.id !== orderId);
+                        break;
+                    case 'listFail':
+                        state.listFail = state.listFail.filter(o => o.id !== orderId);
+                        break;
                 }
-            }
-            if(action.payload.status === 2){
-                const existingOrder = state.listProcess.find((order) => order.id === action.payload.id);
-                if(existingOrder){
-                    existingOrder.status = 2;
+                
+                // Thêm vào danh sách mới tương ứng với trạng thái
+                switch(newStatus) {
+                    case 1:
+                    case 2:
+                        state.listProcess.push(order);
+                        break;
+                    case 3:
+                        state.listSuccess.push(order);
+                        break;
+                    case 4:
+                        state.listFail.push(order);
+                        break;
                 }
-            }
-            if(action.payload.status === 3){
-                const order = state.listProcess.find((o) => o.id === action.payload.id);
-                order.status = action.payload.status;
-                state.listProcess = state.listProcess.filter((o) => o.id !== action.payload.id);
-                state.listSuccess.push(order);
-            }
-            if(action.payload.status === 4){
-                const order = state.listProcess.find((o) => o.id === action.payload.id);
-                order.status = action.payload.status;
-                state.listProcess = state.listProcess.filter((o) => o.id !== action.payload.id);
-                state.listFail.push(order);
             }
         },
     },

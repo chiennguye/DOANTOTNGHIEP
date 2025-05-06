@@ -10,14 +10,17 @@ import {
   MenuItem,
   Typography,
   Menu,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  Drawer,
 } from "@material-ui/core";
 import clsx from "clsx";
 import React, { useEffect, useState } from "react";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import MainListItems from "../ListItem";
-import Divider from "@material-ui/core/Divider";
-import List from "@material-ui/core/List";
-import Drawer from "@material-ui/core/Drawer";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { AuthLogoutAction } from "../../../store/actions/AuthAction";
@@ -25,35 +28,84 @@ import ExpandLessIcon from "@material-ui/icons/ExpandLess";
 import Logo from "./../../../assets/img/logo.png";
 import { Client } from "@stomp/stompjs";
 import { RatingListAction } from "../../../store/actions/RatingAction";
+import LocalShippingIcon from '@material-ui/icons/LocalShipping';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
+import api from "../../../common/APIClient";
 
-const SOCKET_URL = "ws://localhost:8080/ws/message";
+const SOCKET_URL = "ws://localhost:8080/ws";
 
 const Navbar = () => {
   const auth = useSelector((state) => state.auth);
   const history = useHistory();
   const dispatch = useDispatch();
   const [anchorElLogout, setAnchorElLogout] = useState(null);
-  const [data, setData] = useState();
+  const [anchorElNotification, setAnchorElNotification] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    dispatch(RatingListAction())
-  }, [dispatch])
+    dispatch(RatingListAction());
+    // Fetch unread notifications on login
+    fetchUnreadNotifications();
+  }, [dispatch]);
+
+  const fetchUnreadNotifications = async () => {
+    try {
+      console.log('Fetching unread notifications...');
+      const response = await api.get('/notifications/unread', {
+        params: {
+          role: 'ADMIN'
+        }
+      });
+      console.log('Unread notifications response:', response.data);
+      const unreadNotifications = response.data;
+      setNotifications(unreadNotifications);
+      setUnreadCount(unreadNotifications.length);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      console.log('Marking notification as read:', notificationId);
+      await api.put(`/notifications/${notificationId}/read`);
+      // Update local state to remove the read notification
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      setUnreadCount(prev => prev - 1);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
 
   useEffect(() => {
     let onConnected = () => {
-      console.log("Connected!!");
-      client.subscribe("/message", function (msg) {
-        // console.log(msg);
+      console.log("WebSocket Connected Successfully!");
+      client.subscribe("/topic/notifications", function (msg) {
+        console.log("Received WebSocket message:", msg);
         if (msg.body) {
-          var jsonBody = JSON.parse(msg.body);
-          // console.log(jsonBody);
-          setData(jsonBody);
+          try {
+            const notification = JSON.parse(msg.body);
+            console.log("Parsed notification:", notification);
+            // Only add notification if it's for ADMIN role
+            if (notification.recipientRole === 'ADMIN') {
+              setNotifications(prev => [notification, ...prev]);
+              setUnreadCount(prev => prev + 1);
+            }
+          } catch (error) {
+            console.error("Error parsing notification:", error);
+          }
         }
       });
     };
 
     let onDisconnected = () => {
-      console.log("Disconnected!");
+      console.log("WebSocket Disconnected!");
+    };
+
+    let onStompError = (frame) => {
+      console.error("WebSocket Error:", frame);
     };
 
     const client = new Client({
@@ -63,10 +115,58 @@ const Navbar = () => {
       heartbeatOutgoing: 4000,
       onConnect: onConnected,
       onDisconnect: onDisconnected,
+      onStompError: onStompError,
+      debug: function (str) {
+        console.log("STOMP Debug:", str);
+      }
     });
 
-    client.activate();
+    try {
+      console.log("Attempting to connect to WebSocket...");
+      client.activate();
+    } catch (error) {
+      console.error("Error activating WebSocket client:", error);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (client) {
+        console.log("Deactivating WebSocket client...");
+        client.deactivate();
+      }
+    };
   }, []);
+
+  const handleNotificationClick = (event) => {
+    setAnchorElNotification(event.currentTarget);
+    // Mark all visible notifications as read when opening the menu
+    notifications.forEach(notification => {
+      if (!notification.isRead) {
+        markNotificationAsRead(notification.id);
+      }
+    });
+  };
+
+  const handleNotificationClose = () => {
+    setAnchorElNotification(null);
+  };
+
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'new_order':
+        return <ShoppingCartIcon />;
+      case 'shipping':
+        return <LocalShippingIcon />;
+      case 'completed':
+        return <CheckCircleIcon />;
+      default:
+        return null;
+    }
+  };
+
+  const getNotificationText = (notification) => {
+    return notification.message;
+  };
 
   function handleClickLogout(event) {
     if (anchorElLogout !== event.currentTarget) {
@@ -182,11 +282,45 @@ const Navbar = () => {
           >
              Drip&Chill
           </Typography>
-          <IconButton color="inherit">
-            <Badge badgeContent={data?.length ?? 0} color="secondary">
+          <IconButton color="inherit" onClick={handleNotificationClick}>
+            <Badge badgeContent={unreadCount} color="secondary">
               <NotificationsIcon />
             </Badge>
           </IconButton>
+          <Menu
+            anchorEl={anchorElNotification}
+            open={Boolean(anchorElNotification)}
+            onClose={handleNotificationClose}
+            PaperProps={{
+              style: {
+                maxHeight: 400,
+                width: 300,
+              },
+            }}
+          >
+            <List>
+              {notifications.length === 0 ? (
+                <ListItem>
+                  <ListItemText primary="Không có thông báo mới" />
+                </ListItem>
+              ) : (
+                notifications.map((notification, index) => (
+                  <React.Fragment key={index}>
+                    <ListItem>
+                      <ListItemIcon>
+                        {getNotificationIcon(notification.type)}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={getNotificationText(notification)}
+                        secondary={new Date(notification.timestamp).toLocaleString()}
+                      />
+                    </ListItem>
+                    {index < notifications.length - 1 && <Divider />}
+                  </React.Fragment>
+                ))
+              )}
+            </List>
+          </Menu>
         </Toolbar>
       </AppBar>
       <Drawer

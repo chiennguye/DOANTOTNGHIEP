@@ -21,13 +21,13 @@ public class RevenueController {
 
     @GetMapping("")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> countRevenue(@RequestParam(defaultValue = "2021") int year){
+    public ResponseEntity<?> countRevenue(@RequestParam(defaultValue = "2021") int year) {
         List<Object> list = orderRepository.countRevenueByYear(year);
         List<RevenueResponse> revenueResponses = new ArrayList<>();
-        for (int i = 0; i < list.size(); i++){
+        for (int i = 0; i < list.size(); i++) {
             RevenueResponse revenueResponse = new RevenueResponse();
-            revenueResponse.setMonth((Integer) ((Object[])list.get(i))[0]);
-            revenueResponse.setRevenue((BigDecimal) ((Object[])list.get(i))[1]);
+            revenueResponse.setMonth((Integer) ((Object[]) list.get(i))[0]);
+            revenueResponse.setRevenue((BigDecimal) ((Object[]) list.get(i))[1]);
             revenueResponses.add(revenueResponse);
         }
         return ResponseEntity.ok(revenueResponses);
@@ -35,29 +35,36 @@ public class RevenueController {
 
     @GetMapping("/years")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getAllYears(){
+    public ResponseEntity<?> getAllYears() {
         List<Integer> list = orderRepository.getAllYears();
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/sumRevenue")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> sumRevenue(@RequestParam(defaultValue = "2021")int year){
+    public ResponseEntity<?> sumRevenue(@RequestParam(defaultValue = "2021") int year) {
         Integer sum = orderRepository.sumRevenue(year);
         return ResponseEntity.ok(sum);
     }
 
     @GetMapping("/today")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getRevenueToday(){
+    public ResponseEntity<?> getRevenueToday() {
         Integer sum = orderRepository.revenueToday();
         return ResponseEntity.ok(sum);
     }
 
     @GetMapping("/lastFiveOrders")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getLastFiveOrders(){
+    public ResponseEntity<?> getLastFiveOrders() {
         List<Order> list = orderRepository.lastFiveOrders();
         return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/todayOrders")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getTodayOrders() {
+        Integer count = orderRepository.countTodayOrders();
+        return ResponseEntity.ok(count);
     }
 }

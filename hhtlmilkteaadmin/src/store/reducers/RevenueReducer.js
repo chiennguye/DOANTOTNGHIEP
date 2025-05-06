@@ -6,6 +6,7 @@ const initialState = {
     sumRevenue: 0,
     revenueToday: 0,
     listLastFiveOrders: [],
+    todayOrders: 0,
 };
 
 const RevenueSlice = createSlice({
@@ -27,9 +28,12 @@ const RevenueSlice = createSlice({
         getListLastFiveOrders: (state, action) => {
             state.listLastFiveOrders = action.payload;
         },
+        getTodayOrders: (state, action) => {
+            state.todayOrders = action.payload;
+        },
     },
 });
 
 const { reducer, actions } = RevenueSlice;
-export const { getListRevenue, getYears, getSumRevenues, getRevenueToday, getListLastFiveOrders } = actions;
+export const { getListRevenue, getYears, getSumRevenues, getRevenueToday, getListLastFiveOrders, getTodayOrders } = actions;
 export default reducer;

@@ -38,6 +38,9 @@ public interface IOrderRepository extends JpaRepository<Order, String> {
     @Query(value = "select * from hhtlmilktea.order where total_price > 0 and status in (1,2,3) order by created_at desc limit 5", nativeQuery = true)
     List<Order> lastFiveOrders();
 
+    @Query(value = "SELECT COUNT(*) FROM hhtlmilktea.order WHERE DATE(created_at) = CURDATE() AND status IN (1,2,3)", nativeQuery = true)
+    Integer countTodayOrders();
+
     Order findByIdEquals(String id);
 
     Page<Order> findByStatus(int status, Pageable pageable);

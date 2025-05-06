@@ -16,6 +16,9 @@ class RevenueService {
     getLastFiveOrders = () => {
         return api.get("/revenue/lastFiveOrders");
     };
+    getTodayOrders = () => {
+        return api.get("/revenue/todayOrders");
+    };
 }
 
 export default new RevenueService();

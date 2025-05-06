@@ -314,6 +314,11 @@ const Content = () => {
   };
 
   const onSubmit = (data) => {
+    if (count > productSelect?.inventory?.quantity) {
+      Notification.error("Số lượng sản phẩm bạn mua vượt quá số lượng trong kho!");
+      return;
+    }
+
     data.product = JSON.stringify(productSelect);
     if (auth?.user) {
       data.userId = auth.user.id;
@@ -456,6 +461,9 @@ const Content = () => {
                 </Typography>
                 <Typography style={{ textAlign: "center", fontSize: 14 }}>
                   {product.title}
+                </Typography>
+                <Typography style={{ textAlign: "center", fontSize: 14, color: "#666" }}>
+                  Số lượng còn: {product?.inventory?.quantity || 0}
                 </Typography>
                 {product?.saleOff?.discount ? (
                   <>

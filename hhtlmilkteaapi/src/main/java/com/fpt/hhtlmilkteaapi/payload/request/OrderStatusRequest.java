@@ -1,15 +1,9 @@
 package com.fpt.hhtlmilkteaapi.payload.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 public class OrderStatusRequest {
-    private String id;
+    private String orderId;
     private int status;
 }
