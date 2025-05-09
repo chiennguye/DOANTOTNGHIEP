@@ -24,7 +24,7 @@ export const steps = [
   },
   {
     id: "time_open",
-    message: "Cửa hàng mở từ 8h - 21h",
+    message: "Cửa hàng mở từ 6h - 23h",
     trigger: "name",
   },
   {

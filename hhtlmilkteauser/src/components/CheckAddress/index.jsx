@@ -12,77 +12,91 @@ import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { GroupOrderFindAllAction } from "../../store/actions/GroupOrderAction";
-import GoogleMap from "../../common/GoogleMap";
 import OrderService from "../../services/OrderService";
 
 const useStyles = makeStyles((theme) => ({
   btnReloadMap: {
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 10,
-    padding: 10,
+    padding: "12px 24px",
     border: "none",
     backgroundColor: "#2454b5",
     color: "white",
     fontWeight: "bold",
     cursor: "pointer",
+    borderRadius: "4px",
+    fontSize: "16px",
+    width: "100%",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      backgroundColor: "#1a3d8f",
+    },
   },
   btnReloadMapDisable: {
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 10,
-    padding: 10,
-    color: "black",
+    padding: "12px 24px",
+    color: "white",
     border: "none",
-    backgroundColor: "gray",
+    backgroundColor: "#cccccc",
     fontWeight: "bold",
-    cursor: "pointer",
+    cursor: "not-allowed",
+    borderRadius: "4px",
+    fontSize: "16px",
+    width: "100%",
   },
   layout: {
     width: "auto",
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
     [theme.breakpoints.up(600 + theme.spacing(2) * 2)]: {
-      marginLeft: "auto",
-      marginRight: "auto",
-    },
-    [theme.breakpoints.down("xs")]: {
-      width: 400,
+      width: 600,
       marginLeft: "auto",
       marginRight: "auto",
     },
   },
   paper: {
-    minHeight: 400,
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(3),
-    padding: theme.spacing(2),
+    padding: theme.spacing(3),
     [theme.breakpoints.up(600 + theme.spacing(3) * 2)]: {
       marginTop: theme.spacing(6),
       marginBottom: theme.spacing(6),
-      padding: theme.spacing(3),
+      padding: theme.spacing(4),
     },
+    borderRadius: "8px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
   },
-  map: {
-    marginLeft: 200,
-    [theme.breakpoints.down("md")]: {
-      marginLeft: 0,
+  title: {
+    marginBottom: theme.spacing(4),
+    color: "#333",
+    fontWeight: "bold",
+  },
+  formContainer: {
+    padding: theme.spacing(2),
+  },
+  inputField: {
+    marginBottom: theme.spacing(3),
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "4px",
+      "&:hover fieldset": {
+        borderColor: "#2454b5",
+      },
     },
-  },
-  hide: {
-    display: "none",
-  },
-  mapResult: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 5,
+    "& .MuiInputLabel-root": {
+      color: "#666",
+    },
   },
   noteField: {
-    '& .MuiInput-underline': {
-      marginBottom: 0,
+    marginBottom: theme.spacing(3),
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "4px",
     },
-    '& .MuiInputBase-root': {
-      marginBottom: 0,
-    }
+  },
+  errorText: {
+    color: "#d32f2f",
+    marginTop: "4px",
+    fontSize: "0.75rem",
   },
 }));
 
@@ -90,25 +104,46 @@ const CheckAddress = () => {
   const classes = useStyles();
   const history = useHistory();
   const { order } = useSelector((state) => state.order);
+  const { customer } = useSelector((state) => state.customer);
   const [isLoading, setIsLoading] = useState(false);
   const [address, setAddress] = useState({
     to: "",
     phone: "",
     note: ""
   });
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [showMapResult, setShowMapResult] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+    trigger,
+    setValue
+  } = useForm({
+    mode: "onSubmit",
+    reValidateMode: "onSubmit"
+  });
 
   // support group member
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
+
+  // Fill user's address when component mounts
+  useEffect(() => {
+    if (customer?.address) {
+      setAddress(prev => ({
+        ...prev,
+        to: customer.address
+      }));
+      setValue("to_places", customer.address);
+    }
+    if (customer?.phone) {
+      setAddress(prev => ({
+        ...prev,
+        phone: customer.phone
+      }));
+      setValue("phone", customer.phone);
+    }
+  }, [customer, setValue]);
 
   useEffect(() => {
     if (Object.keys(order).length !== 0) {
@@ -138,22 +173,14 @@ const CheckAddress = () => {
   }, [auth?.user?.token, auth?.user?.username, dispatch, order, order?.id]);
 
   useEffect(() => {
-    const checkMapAndOrder = async () => {
-      if (!localStorage.getItem("map")) {
-        localStorage.setItem("map", "refresh");
-        window.location.href = "/checkout";
-      }
-
-      // Kiểm tra xem có orderId trong URL không
+    const checkOrder = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const orderId = urlParams.get('orderId');
 
       if (orderId) {
-        // Nếu có orderId, lấy thông tin đơn hàng từ API
         try {
           const response = await OrderService.getOrderById(orderId);
           if (response.data) {
-            // Lưu thông tin đơn hàng vào Redux store
             dispatch({ type: 'SET_ORDER', payload: response.data });
           } else {
             window.location.href = "/";
@@ -163,103 +190,25 @@ const CheckAddress = () => {
           window.location.href = "/";
         }
       } else if (!order) {
-        // Nếu không có orderId và không có order trong store
         window.location.href = "/";
       }
     };
     
-    checkMapAndOrder();
+    checkOrder();
   }, [order, dispatch]);
-
-  // Load Google Maps API
-  useEffect(() => {
-    const loadGoogleMapsAPI = () => {
-      // Check if API is already loaded
-      if (window.google && window.google.maps) {
-        setMapLoaded(true);
-        return;
-      }
-
-      // Create script element
-      const script = document.createElement('script');
-      // Sử dụng API key mới
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRuKWuHnTx15jHDjLuT6lqnE36Rojk&libraries=places&v=weekly`;
-      script.async = true;
-      script.defer = true;
-      
-      // Add event listener
-      script.addEventListener('load', () => {
-        console.log('Google Maps API loaded successfully');
-        setMapLoaded(true);
-      });
-      
-      // Add error handling
-      script.addEventListener('error', (e) => {
-        console.error('Error loading Google Maps API:', e);
-        // Still allow address input even if map fails to load
-        setMapLoaded(true);
-      });
-      
-      // Append script to document
-      document.head.appendChild(script);
-    };
-    
-    loadGoogleMapsAPI();
-  }, []);
-
-  // Initialize Google Places Autocomplete
-  useEffect(() => {
-    if (mapLoaded && window.google && window.google.maps && window.google.maps.places) {
-      try {
-        const input = document.getElementById("to_places");
-        if (!input) {
-          console.log("Input element not found");
-          return;
-        }
-
-        console.log("Initializing Google Places Autocomplete");
-        
-        // Sử dụng Autocomplete với cấu hình đơn giản
-        const autocomplete = new window.google.maps.places.Autocomplete(input, {
-          types: ['address'],
-          componentRestrictions: { country: 'vn' },
-          fields: ['formatted_address']
-        });
-
-        // Listen for place selection
-        autocomplete.addListener('place_changed', () => {
-          console.log("Place changed event triggered");
-          const place = autocomplete.getPlace();
-          console.log("Selected place:", place);
-          
-          if (place && place.formatted_address) {
-            const to_address = place.formatted_address;
-            console.log("Setting new address:", to_address);
-            
-            setAddress(prev => ({
-              ...prev,
-              to: to_address
-            }));
-            
-            // Update hidden input
-            const destinationInput = document.getElementById("destination");
-            if (destinationInput) {
-              destinationInput.value = to_address;
-            }
-          }
-        });
-      } catch (error) {
-        console.error('Error initializing Places Autocomplete:', error);
-      }
-    }
-  }, [mapLoaded]);
 
   const onSubmit = async (data) => {
     try {
       setIsLoading(true);
-      data.shippingPrice = document.getElementById("price_shipping")?.innerHTML || "15000";
+      // Trigger validation before proceeding
+      const isValid = await trigger();
+      if (!isValid) {
+        setIsLoading(false);
+        return;
+      }
+      
+      data.shippingPrice = "15000";
       data.to = address.to;
-      localStorage.removeItem("map");
       await history.push("/payment", { address: data });
     } catch (error) {
       console.error("Error submitting address:", error);
@@ -268,108 +217,55 @@ const CheckAddress = () => {
     }
   };
 
-  const [loadMap] = useState(true);
-  const [from] = useState(
-    "Số 8, ngõ 121, Tây Mỗ, Đại Mỗ, Nam Từ Liêm, Hà Nội"
-  );
-
   const handleAddressChange = (field) => (e) => {
     const value = e.target.value;
-    console.log("handleAddressChange called - field:", field, "value:", value);
-    
-    setAddress(prev => {
-      console.log("Previous address:", prev);
-      return {
-        ...prev,
-        [field]: value
-      };
-    });
-    
-    // Update destination input when address changes manually
-    if (field === 'to') {
-      const destinationInput = document.getElementById("destination");
-      if (destinationInput) {
-        destinationInput.value = value;
-      }
-    }
+    setAddress(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
-
-  const handleAddressBlur = () => {
-    console.log("handleAddressBlur called - setting isTyping to false");
-    setIsTyping(false);
-  };
-
-  // Add effect to monitor address changes
-  useEffect(() => {
-    console.log("Address state changed:", address);
-  }, [address]);
-
-  // Add effect to monitor isTyping changes
-  useEffect(() => {
-    console.log("isTyping state changed:", isTyping);
-  }, [isTyping]);
-
-  const onHandleCheckMap = () => {
-    const destinationValue = document.getElementById("destination").value;
-    if (destinationValue) {
-      setAddress(prev => ({
-        ...prev,
-        to: destinationValue
-      }));
-      
-      // Show map result
-      setShowMapResult(true);
-      
-      // Simulate distance calculation (in a real app, this would use Google Maps Distance Matrix API)
-      const inKiloElement = document.getElementById("in_kilo");
-      const durationElement = document.getElementById("duration_text");
-      const priceElement = document.getElementById("price_shipping");
-      
-      if (inKiloElement) inKiloElement.textContent = "5.2 km";
-      if (durationElement) durationElement.textContent = "15 phút";
-      if (priceElement) priceElement.textContent = "15000";
-    }
-  };
-
-  const isFormValid = address.to && !errors.phone && !errors.to_places;
 
   return (
     <div>
       <main className={classes.layout}>
         <Paper className={classes.paper}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h5" className={classes.title}>
             Địa chỉ giao hàng
           </Typography>
-          <Grid container spacing={3}>
-            <Grid item md={5} sm={12} style={{ marginTop: 20 }}>
-              <form onSubmit={handleSubmit(onSubmit)}>
+          <div className={classes.formContainer}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <TextField
                     type="text"
-                    id="to_places"
                     label="Nhập địa chỉ giao hàng"
-                    value={address.to}
                     fullWidth
+                    variant="outlined"
                     placeholder="Nhập địa chỉ chi tiết (số nhà, đường, phường/xã, quận/huyện)"
                     onChange={handleAddressChange('to')}
-                    onBlur={handleAddressBlur}
+                    value={address.to}
+                    inputRef={register({
+                      required: "Vui lòng nhập địa chỉ giao hàng",
+                      minLength: {
+                        value: 10,
+                        message: "Địa chỉ phải có ít nhất 10 ký tự"
+                      },
+                      validate: {
+                        hasNumber: value => /\d/.test(value) || "Địa chỉ phải có số nhà",
+                        hasAddress: value => /(đường|phố|ngõ|ngách|hẻm|tổ|khu|phường|xã|quận|huyện)/i.test(value) || "Địa chỉ phải có tên đường/phố và quận/huyện"
+                      }
+                    })}
+                    name="to_places"
                     error={!!errors.to_places}
                     helperText={errors.to_places?.message}
-                    inputProps={{
-                      autoComplete: 'off'
-                    }}
-                  />
-                  <input
-                    id="destination"
-                    name="destination"
-                    type="hidden"
-                    value={address.to}
+                    className={classes.inputField}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
                     name="phone"
                     label="Số điện thoại"
+                    variant="outlined"
                     value={address.phone}
                     onChange={handleAddressChange('phone')}
                     inputRef={register({
@@ -380,109 +276,39 @@ const CheckAddress = () => {
                       },
                     })}
                     fullWidth
+                    className={classes.inputField}
+                    error={!!errors.phone}
+                    helperText={errors.phone?.message}
                   />
-                  {errors.phone?.message && (
-                    <FormHelperText style={{ color: "red" }}>
-                      {errors.phone?.message}
-                    </FormHelperText>
-                  )}
                 </Grid>
-
                 <Grid item xs={12}>
                   <TextField
                     multiline
                     rows={3}
                     name="note"
                     label="Ghi chú"
+                    variant="outlined"
                     value={address.note}
                     onChange={handleAddressChange('note')}
                     inputRef={register}
                     fullWidth
                     className={classes.noteField}
+                    placeholder="Nhập ghi chú cho đơn hàng (không bắt buộc)"
                   />
                 </Grid>
-                <button
-                  type="submit"
-                  style={{ marginTop: 10 }}
-                  id="btnSubmit"
-                  className={isFormValid ? classes.btnReloadMap : classes.btnReloadMapDisable}
-                  disabled={!isFormValid || isLoading}
-                >
-                  {isLoading ? <CircularProgress size={24} color="inherit" /> : "Tiếp theo"}
-                </button>
-              </form>
-            </Grid>
-            <Grid item md={7} sm={12}>
-              <div className={classes.map}>
-                {loadMap && (
-                  <>
-                    <form>
-                      <div className="checkout-form-list" hidden>
-                        <label>
-                          Vị trí cửa hàng <span className="required">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="from"
-                          id="from_places"
-                          disabled
-                          value={from}
-                        />
-                        <input
-                          id="origin"
-                          name="origin"
-                          type="hidden"
-                          value={from}
-                        />
-                      </div>
-
-                      <div className="checkout-form-list" hidden>
-                        <div className="form-group">
-                          <label>Travel Mode</label>
-                          <select id="travel_mode" name="travel_mode">
-                            <option value="DRIVING">DRIVING</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="order-button-payment">
-                        <input
-                          onClick={onHandleCheckMap}
-                          value="Cập nhật bản đồ"
-                          disabled={address.to === ""}
-                          className={
-                            address.to !== ""
-                              ? classes.btnReloadMap
-                              : classes.btnReloadMapDisable
-                          }
-                          type="button"
-                        />
-                      </div>
-                    </form>
-
-                    <div id="mapResult" className={classes.mapResult} style={{ display: showMapResult ? "block" : "none" }}>
-                      <div>
-                        <label htmlFor="Kilometers">Khoảng cách: </label>&nbsp;
-                        <label translate="no" id="in_kilo"></label>
-                      </div>
-                      <div>
-                        <label htmlFor="Duration">Thời gian giao hàng: </label>
-                        &nbsp;
-                        <label translate="no" id="duration_text"></label>
-                      </div>
-                      <div>
-                        <label htmlFor="Price">Chi phí giao hàng: </label>&nbsp;
-                        <label translate="no" id="price_shipping"></label>
-                        &nbsp;<label>VNĐ</label>
-                      </div>
-                    </div>
-
-                    <GoogleMap />
-                  </>
-                )}
-              </div>
-            </Grid>
-          </Grid>
+                <Grid item xs={12}>
+                  <button
+                    type="submit"
+                    id="btnSubmit"
+                    className={classes.btnReloadMap}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <CircularProgress size={24} color="inherit" /> : "Tiếp theo"}
+                  </button>
+                </Grid>
+              </Grid>
+            </form>
+          </div>
         </Paper>
       </main>
     </div>

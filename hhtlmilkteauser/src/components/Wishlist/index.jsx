@@ -335,6 +335,10 @@ const Wishlist = () => {
   };
 
   const onSubmit = (data) => {
+    if (count > productSelect?.inventory?.quantity) {
+      Notification.error("Số lượng sản phẩm bạn mua vượt quá số lượng trong kho!");
+      return;
+    }
     data.product = JSON.stringify(productSelect);
     data.userId = auth.user.id;
     data.sizeOption = selectedSize?.name ? selectedSize.name : "";
@@ -369,6 +373,7 @@ const Wishlist = () => {
     setOpen(false);
     Notification.success("Đã thêm sản phẩm vào giỏ hàng");
   };
+  
 
   return (
     <React.Fragment>
@@ -419,6 +424,11 @@ const Wishlist = () => {
                             </TableCell>
                             <TableCell>
                               <p>{item.name}</p>
+                              {(item.category.name === "Product" || item.category.name === "Snack") && (
+                                <Typography style={{ fontSize: 14, color: "#666" }}>
+                                  Số lượng còn: {item?.inventory?.quantity || 0}
+                                </Typography>
+                              )}
                             </TableCell>
                             <TableCell align="center">
                               {item?.saleOff?.discount ? (
@@ -699,7 +709,7 @@ const Wishlist = () => {
                 color="primary"
                 className={classes.btnOrder}
               >
-                Đặt hàng
+                Thêm vào giỏ hàng
               </Button>
             </div>
           </DialogContent>

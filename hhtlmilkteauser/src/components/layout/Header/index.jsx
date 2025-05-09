@@ -52,7 +52,7 @@ import { getRatings } from "../../../store/actions/RatingAction";
 
 const sections = [
   { title: "TRANG CHỦ", url: "/home" },
-  { title: "ĐỒ UỐNG CÁC LOẠI", url: "/milktea" },
+  { title: "ĐỒ UỐNG PHA CHẾ", url: "/milktea" },
   { title: "ĐỒ ĂN NHÂM NHI", url: "/dessert" },
   { title: "SẢN PHẨM", url: "/product" },
   { title: "VÒNG QUAY MAY MẮN", url: "/spinner" },
@@ -543,11 +543,10 @@ const Header = ({ isOpen, onHandleOpen }) => {
               style={{ marginRight: 20 }}
             >
               <ShoppingCartIcon
-                style={{ color: "#416c48" }}
+                style={{ color: "#416c48", cursor: "pointer" }}
                 aria-owns={anchorEl ? "simple-menu" : undefined}
                 aria-haspopup="true"
                 onClick={handleClick}
-                onMouseOver={handleClick}
               />
             </Badge>
           </span>
@@ -577,7 +576,6 @@ const Header = ({ isOpen, onHandleOpen }) => {
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleClose}
-            MenuListProps={{ onMouseLeave: handleClose }}
             style={{ marginTop: 25, marginLeft: -100, width: "350" }}
           >
             <MenuItem

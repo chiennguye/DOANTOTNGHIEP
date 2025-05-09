@@ -28,7 +28,6 @@ import { useForm } from "react-hook-form";
 import { CategoryListAction } from "../../../store/actions/CategoryAction";
 import { OrderAddAction } from "../../../store/actions/OrderAction";
 import { udpateWishlist } from "../../../store/actions/UserAction";
-import { GroupOrderAddAction } from "./../../../store/actions/GroupOrderAction.js";
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 
 const useStyles = makeStyles((theme) => ({
@@ -40,10 +39,13 @@ const useStyles = makeStyles((theme) => ({
     height: "100%",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "none",
-    backgroundColor: "#fafafa",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    backgroundColor: "#ffffff",
+    borderRadius: "12px",
+    transition: "all 0.3s ease-in-out",
     "&:hover": {
-      boxShadow: "2px 4px 4px 2px  #a5abb5",
+      transform: "translateY(-5px)",
+      boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
     },
   },
   cardMedia: {
@@ -52,20 +54,27 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: "auto",
     marginTop: 20,
     paddingTop: "76.25%",
-    width: "60%",
+    width: "70%",
+    transition: "transform 0.3s ease-in-out",
+    "&:hover": {
+      transform: "scale(1.05)",
+    },
   },
   cardContent: {
     flexGrow: 1,
+    padding: "16px 24px",
   },
   btnOrder: {
     color: "#0c713d",
     fontSize: 16,
-    border: "1px solid",
-    paddingRight: 10,
-    paddingLeft: 10,
+    border: "2px solid #0c713d",
+    borderRadius: "25px",
+    padding: "8px 24px",
+    transition: "all 0.3s ease",
     "&:hover": {
       backgroundColor: "#0c713d",
       color: "white",
+      transform: "scale(1.05)",
     },
   },
   iconButton: {
@@ -113,8 +122,10 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "5%",
     fontSize: 30,
     color: "#9e9796",
+    transition: "all 0.3s ease",
     "&:hover": {
       color: "#416c48",
+      transform: "scale(1.1)",
     },
   },
   iconWishListSelected: {
@@ -123,16 +134,22 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "5%",
     fontSize: 30,
     color: "#416c48",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      transform: "scale(1.1)",
+    },
   },
   itemTag: {
     backgroundColor: "#416c48",
-    padding: "3px 18px",
+    padding: "4px 16px",
     color: "white",
     marginTop: "5%",
     marginLeft: "5%",
     position: "absolute",
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "bold",
+    borderRadius: "15px",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
   },
   descriptionCard: {
     backgroundImage: `url(${popupBg})`,
@@ -158,12 +175,14 @@ const useStyles = makeStyles((theme) => ({
     color: "#0c713d",
     fontSize: 14,
     border: "1px solid",
-    borderRadius: 5,
-    padding: 3,
+    borderRadius: "20px",
+    padding: "6px 16px",
     marginTop: 5,
+    transition: "all 0.3s ease",
     "&:hover": {
       backgroundColor: "#0c713d",
       color: "white",
+      transform: "scale(1.05)",
     },
   },
   btnSelected: {
@@ -172,10 +191,14 @@ const useStyles = makeStyles((theme) => ({
     marginTop: 5,
     fontSize: 14,
     border: "1px solid",
-    borderRadius: 5,
-    padding: 3,
+    borderRadius: "20px",
+    padding: "6px 16px",
     backgroundColor: "#0c713d",
     color: "white",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      transform: "scale(1.05)",
+    },
   },
   scrollTopButton: {
     position: 'fixed',
@@ -192,6 +215,45 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 80,
     transform: 'translateX(0)',
   },
+  productTitle: {
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+    color: "#333",
+    transition: "color 0.3s ease",
+    "&:hover": {
+      color: "#0c713d",
+    },
+  },
+  productDescription: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 12,
+    minHeight: "40px",
+  },
+  priceContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px",
+  },
+  originalPrice: {
+    textDecoration: "line-through",
+    color: "#999",
+    fontSize: 14,
+  },
+  salePrice: {
+    color: "#0c713d",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  regularPrice: {
+    color: "#0c713d",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
 }));
 
 const Content = () => {
@@ -200,6 +262,10 @@ const Content = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const { products, newProductId } = useSelector((state) => state.product);
+  const { categories } = useSelector((state) => state.category);
+  const auth = useSelector((state) => state.auth);
+  const { wishlist } = useSelector((state) => state.customer);
+  const { order } = useSelector((state) => state.order);
 
   const [valueCategory, setValueCategory] = useState("");
   const [valueToOrderBy, setValueToOrderBy] = useState("id");
@@ -207,31 +273,16 @@ const Content = () => {
   const [keyword, setKeyword] = useState("");
   const [name, setName] = useState("");
   const dispatch = useDispatch();
-  const { categories } = useSelector((state) => state.category);
 
   const [productSelect, setProductSelect] = useState("");
-
   const [selectedSize, setSelectedSize] = useState();
-
   const [selectedAdd, setSelectedAdd] = useState([]);
-
   const [count, setCount] = useState(1);
-
   const [currentPrice, setCurrentPrice] = useState(0);
-
   const [note, setNote] = useState("");
-
   const [size, setSize] = useState([]);
 
-  const auth = useSelector((state) => state.auth);
-
-  const { wishlist } = useSelector((state) => state.customer);
-
   const { handleSubmit } = useForm();
-
-  const { order } = useSelector((state) => state.order);
-
-  const { dataGroupOrderDetails } = useSelector((state) => state.groupOrder);
 
   useEffect(() => {
     dispatch(CategoryListAction());
@@ -266,14 +317,7 @@ const Content = () => {
   };
 
   const handleClickOpen = (item) => {
-    if (
-      auth?.user?.token ||
-      (localStorage.getItem("member") &&
-        dataGroupOrderDetails?.groupOrderInfoResponses &&
-        dataGroupOrderDetails?.groupOrderInfoResponses.some(
-          (a) => a.username === localStorage.getItem("member")
-        ))
-    ) {
+    if (auth?.user?.token) {
       setProductSelect(item);
       setCurrentPrice(
         item.price * (item?.saleOff?.discount ? 1 - item?.saleOff?.discount : 1)
@@ -380,19 +424,15 @@ const Content = () => {
   };
 
   const onSubmit = (data) => {
-    data.product = JSON.stringify(productSelect);
-    if (auth?.user) {
-      data.userId = auth.user.id;
+    if (!auth?.user?.token) {
+      Notification.error("Vui lòng đăng nhập trước khi mua hàng!");
+      return;
     }
+
+    data.product = JSON.stringify(productSelect);
+    data.userId = auth.user.id;
     data.sizeOption = !Object.is(selectedSize, undefined) ? selectedSize.name : "";
     data.quantity = count;
-
-    if (localStorage.getItem("member")) {
-      const groupMember = JSON.parse(localStorage.getItem("groupMember"));
-      data.name = localStorage.getItem("member");
-      data.usernameOwner = groupMember?.username;
-      data.orderId = groupMember?.orderID;
-    }
 
     const result = selectedAdd.map((a) => a.name).sort();
     var temp = "";
@@ -407,18 +447,12 @@ const Content = () => {
     data.additionOption = temp;
     data.priceCurrent = currentPrice;
     data.note = note;
-    if (localStorage.getItem("member")) {
-      const groupMember = JSON.parse(localStorage.getItem("groupMember"));
-      const username = groupMember?.username;
-      const orderID = groupMember?.orderID;
-      const type = "team";
-      GroupOrderAddAction(data, { username, type, orderID })(dispatch);
-    } else {
-      const username = auth?.user?.username;
-      const orderID = order?.id;
-      const type = "team";
-      dispatch(OrderAddAction(data, { username, type, orderID }));
-    }
+
+    const username = auth?.user?.username;
+    const orderID = order?.id;
+    const type = "team";
+    dispatch(OrderAddAction(data, { username, type, orderID }));
+    
     setOpen(false);
     Notification.success("Đã thêm sản phẩm vào giỏ hàng");
   };
@@ -544,67 +578,40 @@ const Content = () => {
                 title="Image title"
               />
               <CardContent className={classes.cardContent}>
-                <Typography
-                  gutterBottom
-                  variant="h5"
-                  component="h2"
-                  style={{
-                    textAlign: "center",
-                    fontSize: 16,
-                    fontWeight: "bold",
-                  }}
-                >
+                <Typography className={classes.productTitle}>
                   {product.name}
                 </Typography>
-                <Typography style={{ textAlign: "center", fontSize: 14 }}>
+                <Typography className={classes.productDescription}>
                   {product.title}
                 </Typography>
-                {product?.saleOff?.discount ? (
-                  <>
-                    <Typography
-                      style={{
-                        textDecoration: "line-through",
-                        color: "#666",
-                        fontSize: 14,
-                        textAlign: "center",
-                        display: "block"
-                      }}
-                    >
+                <div className={classes.priceContainer}>
+                  {product?.saleOff?.discount ? (
+                    <>
+                      <Typography className={classes.originalPrice}>
+                        {product.price.toLocaleString("it-IT", {
+                          style: "currency",
+                          currency: "VND",
+                        })}
+                      </Typography>
+                      <Typography className={classes.salePrice}>
+                        {(
+                          product.price *
+                          (1 - product?.saleOff?.discount)
+                        ).toLocaleString("it-IT", {
+                          style: "currency",
+                          currency: "VND",
+                        })}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography className={classes.regularPrice}>
                       {product.price.toLocaleString("it-IT", {
                         style: "currency",
                         currency: "VND",
                       })}
                     </Typography>
-                    <Typography
-                      style={{
-                        textAlign: "center",
-                        color: "#0c713d",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {(
-                        product.price *
-                        (1 - product?.saleOff?.discount)
-                      ).toLocaleString("it-IT", {
-                        style: "currency",
-                        currency: "VND",
-                      })}
-                    </Typography>
-                  </>
-                ) : (
-                  <Typography
-                    style={{
-                      textAlign: "center",
-                      color: "#0c713d",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {product.price.toLocaleString("it-IT", {
-                      style: "currency",
-                      currency: "VND",
-                    })}
-                  </Typography>
-                )}
+                  )}
+                </div>
               </CardContent>
               <CardActions
                 style={{

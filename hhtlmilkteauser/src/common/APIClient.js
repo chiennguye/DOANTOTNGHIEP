@@ -7,7 +7,8 @@ const PUBLIC_ROUTES = [
   '/auth/signin',
   '/auth/signup',
   '/auth/logout',
-  '/rating/list'
+  '/rating/list',
+  '/product'
 ];
 
 const api = axios.create({
@@ -31,12 +32,12 @@ api.interceptors.request.use(
 
     const token = localStorage.getItem("token");
     
-    console.log("Request interceptor:", {
-      url: config.url,
-      isPublicRoute,
-      hasToken: !!token,
-      method: config.method
-    });
+    // console.log("Request interceptor:", {
+    //   url: config.url,
+    //   isPublicRoute,
+    //   hasToken: !!token,
+    //   method: config.method
+    // });
     
     if (token && !isPublicRoute) {
       config.headers["Authorization"] = `Bearer ${token}`;
@@ -46,38 +47,38 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error("Request interceptor error:", error);
+    // console.error("Request interceptor error:", error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor
-api.interceptors.response.use(
-  (response) => {
-    console.log("Response success:", {
-      url: response.config.url,
-      status: response.status,
-      data: response.data
-    });
-    return response;
-  },
-  (error) => {
-    console.error("Response error:", {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    });
+// api.interceptors.response.use(
+//   (response) => {
+//     console.log("Response success:", {
+//       url: response.config.url,
+//       status: response.status,
+//       data: response.data
+//     });
+//     return response;
+//   },
+//   (error) => {
+//     console.error("Response error:", {
+//       url: error.config?.url,
+//       status: error.response?.status,
+//       data: error.response?.data,
+//       message: error.message
+//     });
     
-    // Chỉ xử lý lỗi 401 cho các route cần xác thực
-    if (error.response?.status === 401 && !PUBLIC_ROUTES.some(route => error.config?.url.includes(route))) {
-      console.log("Token không hợp lệ hoặc hết hạn, xóa token và chuyển về trang login");
-      AuthService.clearAll();
-      window.location.href = "/signin";
-    }
+//     // Chỉ xử lý lỗi 401 cho các route cần xác thực
+//     if (error.response?.status === 401 && !PUBLIC_ROUTES.some(route => error.config?.url.includes(route))) {
+//       console.log("Token không hợp lệ hoặc hết hạn, xóa token và chuyển về trang login");
+//       AuthService.clearAll();
+//       window.location.href = "/signin";
+//     }
     
-    return Promise.reject(error);
-  }
-);
+//     return Promise.reject(error);
+//   }
+// );
 
 export default api;
