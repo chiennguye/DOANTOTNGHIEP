@@ -12,6 +12,7 @@ import {
   TextField,
   makeStyles,
   Chip,
+  Typography,
 } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -158,7 +159,7 @@ const Product = () => {
 
   const fields = [
     { id: 'image', label: 'Hình ảnh', disableSorting: true },
-    { id: 'name', label: 'Tên sản phẩm', disableSorting: false },
+    { id: 'name', label: 'Sản phẩm', disableSorting: false },
     { id: "title", label: "Chú Thích", disableSorting: false },
     { id: 'price', label: 'Giá', disableSorting: false },
     { id: 'category', label: 'Danh mục', disableSorting: false },
@@ -279,7 +280,14 @@ const Product = () => {
                   />
                 </TableCell>
                 <TableCell>{u.name}</TableCell>
-                <TableCell>{u.title}</TableCell>
+                <TableCell>
+                  {u.title}
+                  {u.inventory && u.inventory.quantity < u.inventory.minimumQuantity && (
+                    <Typography style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
+                      Cảnh báo: Số lượng tồn kho thấp ({u.inventory.quantity}/{u.inventory.minimumQuantity})
+                    </Typography>
+                  )}
+                </TableCell>
                 <TableCell>
                   {typeof u.price === "number"
                     ? u.price.toLocaleString("it-IT", {

@@ -87,6 +87,7 @@ const Forget = () => {
 
   useEffect(() => {
     if (user?.token && !user?.roles?.includes("ROLE_ADMIN")) {
+      console.log("User is logged in, redirecting to home");
       history.push("/home");
     }
   }, [history, user]);
@@ -97,8 +98,10 @@ const Forget = () => {
     const password = localArr[3];
     const comfirm = localArr[5];
     if (email && password && comfirm) {
+      console.log("Processing reset password with params:", { email, password, comfirm });
       if (localStorage.getItem("reset-pass")) {
         AuthResetPassAction({ email, password })(dispatch).then((res) => {
+          console.log("Reset password response:", res);
           if (Object.is(res.data, "OK")) {
             localStorage.removeItem("reset-pass");
             localStorage.removeItem("email");
@@ -107,6 +110,7 @@ const Forget = () => {
           }
         });
       } else {
+        console.log("Reset pass token expired");
         Notification.error("Comfirm của bạn đã hết hạn");
         history.replace("/forget");
       }
@@ -137,10 +141,12 @@ const Forget = () => {
   }, [lockButton, timeLeft]);
 
   const onSubmit = (data) => {
+    console.log("Submitting forget password form with data:", data);
     if (data?.email === undefined && localStorage.getItem("email")) {
       data.email = localStorage.getItem("email");
     }
     AuthCheckEmailAction(data)(dispatch).then((res) => {
+      console.log("Check email response:", res);
       if (Object.is(res.message, "Email này đã đăng ký")) {
         setMessage("");
         setLock(true);
@@ -151,6 +157,18 @@ const Forget = () => {
         const emailGenerate = data?.email;
         const passGenerate = makePass(10);
         const urlGenerate = `${window.location.href}?email=${emailGenerate}&password=${passGenerate}&confirm=true`;
+        
+        console.log("Sending email with config:", {
+          serviceID: "service_ls3gsbf",
+          templateID: "template_nbxspmd",
+          userID: "user_xHnS7IIfPDiOnDQvSdzc5",
+          data: {
+            toPassword: passGenerate,
+            toMessage: urlGenerate,
+            reply_to: emailGenerate,
+          }
+        });
+
         send(
           "service_ls3gsbf",
           "template_nbxspmd",
@@ -162,13 +180,21 @@ const Forget = () => {
           "user_xHnS7IIfPDiOnDQvSdzc5"
         )
           .then((response) => {
-            console.log("SUCCESS!", response.status, response.text);
+            console.log("Email sent successfully:", response);
             localStorage.setItem("email", emailGenerate);
+            Notification.success("Đã gửi email xác nhận. Vui lòng kiểm tra hộp thư của bạn.");
+            setMessage("Đã gửi email xác nhận. Vui lòng kiểm tra hộp thư của bạn.");
           })
           .catch((err) => {
-            console.log("FAILED...", err);
+            console.error("Failed to send email:", err);
+            Notification.error("Không thể gửi email xác nhận. Vui lòng thử lại sau.");
+            setMessage("Không thể gửi email xác nhận. Vui lòng thử lại sau.");
+            setLock(false);
+            setLockButton(false);
+            setTimeLeft(null);
           });
       } else {
+        console.log("Email not registered:", res.message);
         setMessage(res.message);
         localStorage.removeItem("email");
       }

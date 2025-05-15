@@ -15,6 +15,7 @@ import {
   OrderUpdateQuantity,
 } from "../../store/actions/OrderAction";
 import { GroupOrderFindAllAction } from "../../store/actions/GroupOrderAction";
+import Notification from "../../common/Notification";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -215,6 +216,17 @@ const ShoppingCart = () => {
       setOpenDialog(true);
       return;
     }
+
+    // Check if any product quantity exceeds inventory
+    const hasExceededInventory = order?.orderDetails?.some(
+      item => item.quantity > item.product.inventory?.quantity
+    );
+
+    if (hasExceededInventory) {
+      Notification.error("Một số sản phẩm trong giỏ hàng vượt quá số lượng trong kho!");
+      return;
+    }
+
     window.location.href = "/checkout";
     localStorage.setItem("map", "refresh");
     localStorage.removeItem("group");
@@ -228,6 +240,17 @@ const ShoppingCart = () => {
     const username = auth?.user?.username;
     const type = "team";
     const orderID = order?.id;
+    
+    // Find the order detail to check inventory
+    const orderDetail = order?.orderDetails?.find(item => item.id === orderDetailId);
+    if (!orderDetail) return;
+
+    // Check if increasing quantity would exceed inventory
+    if (action === "plus" && orderDetail.quantity >= orderDetail.product.inventory?.quantity) {
+      Notification.error("Số lượng sản phẩm vượt quá số lượng trong kho!");
+      return;
+    }
+
     dispatch(
       OrderUpdateQuantity(
         { orderDetailId, action },

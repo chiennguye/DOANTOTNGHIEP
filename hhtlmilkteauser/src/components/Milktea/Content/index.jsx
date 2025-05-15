@@ -354,7 +354,7 @@ const Content = () => {
     if (auth?.user?.token) {
       const userId = auth.user.id;
       dispatch(udpateWishlist({ userId: userId, productId: product.id }));
-      Notification.warn("Đã xoá sản phẩm vào yêu thích");
+      Notification.warn("Đã xoá sản phẩm khỏi yêu thích");
     } else {
       Notification.error("Vui lòng đăng nhập!");
     }
