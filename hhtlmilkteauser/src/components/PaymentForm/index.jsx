@@ -572,6 +572,20 @@ const PaymentForm = () => {
 
           <Grid container spacing={3}>
             <Grid item xs={12} md={12}>
+              <div style={{ 
+                backgroundColor: '#e3f2fd', 
+                padding: '15px', 
+                borderRadius: '8px',
+                marginBottom: '20px',
+                textAlign: 'center'
+              }}>
+                <Typography variant="h6" style={{ color: '#1976d2', marginBottom: '10px' }}>
+                  🎁 Ưu đãi đặc biệt khi thanh toán online!
+                </Typography>
+                <Typography variant="body1">
+                  Nhận ngay {(totalPrice / 100).toFixed(0)} điểm thưởng khi thanh toán qua MoMo hoặc VNPay
+                </Typography>
+              </div>
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <Button
                   variant="outlined"

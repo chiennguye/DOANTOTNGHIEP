@@ -32,12 +32,12 @@ api.interceptors.request.use(
 
     const token = localStorage.getItem("token");
     
-    console.log("Request interceptor:", {
-      url: config.url,
-      isPublicRoute,
-      hasToken: !!token,
-      method: config.method
-    });
+    // console.log("Request interceptor:", {
+    //   url: config.url,
+    //   isPublicRoute,
+    //   hasToken: !!token,
+    //   method: config.method
+    // });
     
     if (token && !isPublicRoute) {
       config.headers["Authorization"] = `Bearer ${token}`;
@@ -55,11 +55,11 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log("Response success:", {
-      url: response.config.url,
-      status: response.status,
-      data: response.data
-    });
+    // console.log("Response success:", {
+    //   url: response.config.url,
+    //   status: response.status,
+    //   data: response.data
+    // });
     return response;
   },
   (error) => {

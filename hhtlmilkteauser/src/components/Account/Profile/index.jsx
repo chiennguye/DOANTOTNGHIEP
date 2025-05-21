@@ -9,6 +9,7 @@ import {
   FormHelperText,
   Backdrop,
   CircularProgress,
+  Modal,
 } from "@material-ui/core";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
@@ -66,6 +67,22 @@ const useStyles = makeStyles((theme) => ({
     zIndex: theme.zIndex.drawer + 1,
     color: "#fff",
   },
+  modal: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalImage: {
+    maxWidth: '90%',
+    maxHeight: '90vh',
+    objectFit: 'contain',
+  },
+  avatar: {
+    cursor: 'pointer',
+    '&:hover': {
+      opacity: 0.8,
+    },
+  },
 }));
 
 const Profile = () => {
@@ -85,6 +102,8 @@ const Profile = () => {
   //Display image
   const [img, setImg] = useState();
 
+  const [openModal, setOpenModal] = useState(false);
+
   const onImageChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       setImg(URL.createObjectURL(event.target.files[0]));
@@ -102,6 +121,14 @@ const Profile = () => {
       });
     }, 2000);
     setOpen(!open);
+  };
+
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
   };
 
   return (
@@ -225,8 +252,21 @@ const Profile = () => {
                 <Avatar
                   alt="avatar"
                   src={img ? img : customer.linkImage}
-                  className={classes.large}
+                  className={`${classes.large} ${classes.avatar}`}
+                  onClick={handleOpenModal}
                 />
+                <Modal
+                  open={openModal}
+                  onClose={handleCloseModal}
+                  className={classes.modal}
+                >
+                  <img
+                    src={img ? img : customer.linkImage}
+                    alt="Profile"
+                    className={classes.modalImage}
+                    onClick={handleCloseModal}
+                  />
+                </Modal>
                 <label htmlFor="upload-photo">
                   <TextField
                     id="upload-photo"

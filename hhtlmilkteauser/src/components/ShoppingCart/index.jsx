@@ -206,7 +206,7 @@ const ShoppingCart = () => {
 
   const checkStoreHours = () => {
     const now = new Date();
-     const testHour = null;
+     const testHour = 7;
      const currentHour = testHour || now.getHours();
     return currentHour >= 6 && currentHour < 23;
   };
