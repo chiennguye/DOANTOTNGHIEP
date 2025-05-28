@@ -394,7 +394,7 @@ public class OrderController {
             }
 
             // Send notification to all admin users
-            messagingTemplate.convertAndSend("/message", notification);
+            messagingTemplate.convertAndSend("/topic/notifications", notification);
 
             return ResponseEntity.ok(order);
         } catch (Exception e) {

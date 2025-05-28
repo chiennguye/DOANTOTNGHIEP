@@ -143,6 +143,14 @@ const EditCategory = () => {
             >
               Cập nhật
             </Button>
+            <Button
+              color="secondary"
+              variant="contained"
+              style={{ marginTop: 20, marginLeft: 10 }}
+              onClick={() => history.goBack()}
+            >
+              Hủy
+            </Button>
           </form>
         </Grid>
       </Grid>

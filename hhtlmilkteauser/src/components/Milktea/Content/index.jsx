@@ -151,6 +151,18 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "15px",
     boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
   },
+  saleTag: {
+    backgroundColor: "red",
+    padding: "4px 16px",
+    color: "white",
+    marginTop: "5%",
+    marginLeft: "5%",
+    position: "absolute",
+    fontSize: 10,
+    fontWeight: "bold",
+    borderRadius: "15px",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  },
   descriptionCard: {
     backgroundImage: `url(${popupBg})`,
     backgroundPosition: "center",
@@ -254,14 +266,37 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: "bold",
     fontSize: 18,
   },
+  flyingImage: {
+    position: 'fixed',
+    zIndex: 9999,
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+    boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+    pointerEvents: 'none',
+    animation: '$flyToCart 0.8s ease-in-out forwards',
+  },
+  '@keyframes flyToCart': {
+    '0%': {
+      transform: 'scale(1)',
+      opacity: 1,
+    },
+    '100%': {
+      transform: 'scale(0.1)',
+      opacity: 0,
+    }
+  },
 }));
 
 const Content = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [flyingImage, setFlyingImage] = useState(null);
+  const [cartPosition, setCartPosition] = useState({ x: 0, y: 0 });
 
-  const { products, newProductId } = useSelector((state) => state.product);
+  const { products } = useSelector((state) => state.product);
   const { categories } = useSelector((state) => state.category);
   const auth = useSelector((state) => state.auth);
   const { wishlist } = useSelector((state) => state.customer);
@@ -307,6 +342,18 @@ const Content = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    // Get cart icon position
+    const cartIcon = document.querySelector('.MuiBadge-root');
+    if (cartIcon) {
+      const rect = cartIcon.getBoundingClientRect();
+      setCartPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      });
+    }
   }, []);
 
   const scrollToTop = () => {
@@ -423,11 +470,48 @@ const Content = () => {
     }
   };
 
+  const animateToCart = (imageUrl) => {
+    const img = new Image();
+    img.src = imageUrl;
+    img.className = classes.flyingImage;
+    
+    // Get click position
+    const clickEvent = window.event;
+    const startX = clickEvent.clientX - 40; // Center the image on click
+    const startY = clickEvent.clientY - 40;
+    
+    // Set initial position
+    img.style.left = `${startX}px`;
+    img.style.top = `${startY}px`;
+    
+    // Calculate the path
+    const deltaX = cartPosition.x - startX;
+    const deltaY = cartPosition.y - startY;
+    
+    // Add the animation
+    img.style.setProperty('--delta-x', `${deltaX}px`);
+    img.style.setProperty('--delta-y', `${deltaY}px`);
+    
+    document.body.appendChild(img);
+    setFlyingImage(img);
+
+    // Remove image after animation
+    setTimeout(() => {
+      if (img.parentNode) {
+        document.body.removeChild(img);
+      }
+      setFlyingImage(null);
+    }, 800);
+  };
+
   const onSubmit = (data) => {
     if (!auth?.user?.token) {
       Notification.error("Vui lòng đăng nhập trước khi mua hàng!");
       return;
     }
+
+    // Start animation
+    animateToCart(productSelect.linkImage);
 
     data.product = JSON.stringify(productSelect);
     data.userId = auth.user.id;
@@ -545,18 +629,36 @@ const Content = () => {
           <Grid item key={product.id} xs={12} sm={6} md={3}>
             <Card className={classes.card}>
               <div className={classes.itemHeader}>
-                {newProductId === product.id && (
-                  <span className={classes.itemTag}>Món mới</span>
-                )}
-                {
-                  product?.saleOff?.discount && (
-                    <span
-                      className={classes.itemTag}
-                      style={{ backgroundColor: "red" }}
-                    >
-                      Giảm giá {product?.saleOff?.discount * 100}%
-                    </span>
-                  )}
+                {(() => {
+                  // Check if product has createdAt directly
+                  if (!product?.createdAt) {
+                    return null;
+                  }
+                  
+                  const createdAt = new Date(product.createdAt);
+                  const thirtyDaysAgo = new Date();
+                  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                  
+                  const isNewProduct = createdAt > thirtyDaysAgo;
+                  
+                  return (
+                    <>
+                      {isNewProduct && (
+                        <span className={classes.itemTag}>Món mới</span>
+                      )}
+                      {product?.saleOff?.discount && (
+                        <span
+                          className={classes.saleTag}
+                          style={{
+                            marginLeft: isNewProduct ? "calc(5% + 80px)" : "5%"
+                          }}
+                        >
+                          Giảm giá {product?.saleOff?.discount * 100}%
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
                 {wishlist?.products?.length > 0 &&
                   wishlist?.products?.map((w) => w.id).includes(product?.id) ? (
                   <FavoriteIcon

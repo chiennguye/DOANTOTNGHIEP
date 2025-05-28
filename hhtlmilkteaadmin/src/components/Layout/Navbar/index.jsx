@@ -53,6 +53,9 @@ const Navbar = () => {
   const fetchUnreadNotifications = async () => {
     try {
       console.log('Fetching unread notifications...');
+      const user = JSON.parse(localStorage.getItem("user"));
+      console.log('Current user:', user);
+      
       const response = await api.get('/notifications/unread', {
         params: {
           role: 'ADMIN'
@@ -63,7 +66,7 @@ const Navbar = () => {
       setNotifications(unreadNotifications);
       setUnreadCount(unreadNotifications.length);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error('Error fetching notifications:', error.response || error);
     }
   };
 
@@ -82,6 +85,7 @@ const Navbar = () => {
   useEffect(() => {
     let onConnected = () => {
       console.log("WebSocket Connected Successfully!");
+      console.log("Subscribing to /topic/notifications");
       client.subscribe("/topic/notifications", function (msg) {
         console.log("Received WebSocket message:", msg);
         if (msg.body) {
@@ -90,6 +94,7 @@ const Navbar = () => {
             console.log("Parsed notification:", notification);
             // Only add notification if it's for ADMIN role
             if (notification.recipientRole === 'ADMIN') {
+              console.log("Adding new notification for ADMIN");
               setNotifications(prev => [notification, ...prev]);
               setUnreadCount(prev => prev + 1);
             }
@@ -122,7 +127,7 @@ const Navbar = () => {
     });
 
     try {
-      console.log("Attempting to connect to WebSocket...");
+      console.log("Attempting to connect to WebSocket at:", SOCKET_URL);
       client.activate();
     } catch (error) {
       console.error("Error activating WebSocket client:", error);

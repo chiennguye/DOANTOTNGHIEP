@@ -298,13 +298,19 @@ public class ProductController {
             products = !"asc".equals(sortDir)
                     ? productRepository.findProductsByCategory_Name("Product", Sort.by(Sort.Direction.DESC, sortField))
                     : productRepository.findProductsByCategory_Name("Product", Sort.by(Sort.Direction.ASC, sortField));
-            products = products.stream().filter(p -> p.getCategory().getDeletedAt() == null && p.getDeletedAt() == null)
+            products = products.stream()
+                    .filter(p -> p.getCategory().getDeletedAt() == null
+                            && p.getDeletedAt() == null
+                            && (p.getInventory() == null || p.getInventory().getQuantity() > 0))
                     .collect(Collectors.toList());
         } else {
             products = !"asc".equals(sortDir)
                     ? productRepository.findProductsByCategory_Name(cateName, Sort.by(Sort.Direction.DESC, sortField))
                     : productRepository.findProductsByCategory_Name(cateName, Sort.by(Sort.Direction.ASC, sortField));
-            products = products.stream().filter(p -> p.getCategory().getDeletedAt() == null && p.getDeletedAt() == null)
+            products = products.stream()
+                    .filter(p -> p.getCategory().getDeletedAt() == null
+                            && p.getDeletedAt() == null
+                            && (p.getInventory() == null || p.getInventory().getQuantity() > 0))
                     .collect(Collectors.toList());
         }
 
@@ -345,13 +351,19 @@ public class ProductController {
                             Sort.by(Sort.Direction.DESC, sortField))
                     : productRepository.findProductsByCategory_NameNotLikeAndCategory_NameNotLike("Snack", "Product",
                             Sort.by(Sort.Direction.ASC, sortField));
-            products = products.stream().filter(p -> p.getCategory().getDeletedAt() == null && p.getDeletedAt() == null)
+            products = products.stream()
+                    .filter(p -> p.getCategory().getDeletedAt() == null
+                            && p.getDeletedAt() == null
+                            && (p.getInventory() == null || p.getInventory().getQuantity() > 0))
                     .collect(Collectors.toList());
         } else {
             products = !"asc".equals(sortDir)
                     ? productRepository.findProductsByCategory_Name(cateName, Sort.by(Sort.Direction.DESC, sortField))
                     : productRepository.findProductsByCategory_Name(cateName, Sort.by(Sort.Direction.ASC, sortField));
-            products = products.stream().filter(p -> p.getCategory().getDeletedAt() == null && p.getDeletedAt() == null)
+            products = products.stream()
+                    .filter(p -> p.getCategory().getDeletedAt() == null
+                            && p.getDeletedAt() == null
+                            && (p.getInventory() == null || p.getInventory().getQuantity() > 0))
                     .collect(Collectors.toList());
         }
 

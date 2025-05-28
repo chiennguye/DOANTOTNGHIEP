@@ -24,7 +24,8 @@ public class Constant {
             "/shared/**",
             "/api/grouporder/**",
             "/api/revenue/**",
-            "/api/rating/**"
+            "/api/rating/**",
+            "/api/notifications/**"
     };
 
 }

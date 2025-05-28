@@ -282,10 +282,18 @@ const Product = () => {
                 <TableCell>{u.name}</TableCell>
                 <TableCell>
                   {u.title}
-                  {u.inventory && u.inventory.quantity < u.inventory.minimumQuantity && (
-                    <Typography style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
-                      Cảnh báo: Số lượng tồn kho thấp ({u.inventory.quantity}/{u.inventory.minimumQuantity})
-                    </Typography>
+                  {u.inventory && (
+                    <>
+                      {u.inventory.quantity === 0 ? (
+                        <Typography style={{ color: 'red', fontSize: '0.8rem', marginTop: '4px' }}>
+                          Cảnh báo: Hết hàng
+                        </Typography>
+                      ) : u.inventory.quantity < u.inventory.minimumQuantity ? (
+                        <Typography style={{ color: 'orange', fontSize: '0.8rem', marginTop: '4px' }}>
+                          Cảnh báo: Số lượng tồn kho thấp ({u.inventory.quantity}/{u.inventory.minimumQuantity})
+                        </Typography>
+                      ) : null}
+                    </>
                   )}
                 </TableCell>
                 <TableCell>
@@ -300,7 +308,7 @@ const Product = () => {
                   {u.category?.name || 'N/A'}
                 </TableCell>
                 <TableCell>
-                  {u.deletedAt ? (
+                  {u.deletedAt || (u.inventory && u.inventory.quantity === 0) ? (
                     <Chip
                       label="Ngừng bán"
                       style={{ backgroundColor: "red", color: "white" }}
@@ -339,8 +347,16 @@ const Product = () => {
                     />
                   ) : (
                     <DeleteOutline
-                      style={{ color: "red", cursor: "pointer" }}
-                      onClick={() => onhandleDelete(u.id)}
+                      style={{ 
+                        color: u.inventory && u.inventory.quantity === 0 ? "grey" : "red",
+                        cursor: u.inventory && u.inventory.quantity === 0 ? "not-allowed" : "pointer",
+                        opacity: u.inventory && u.inventory.quantity === 0 ? 0.5 : 1
+                      }}
+                      onClick={() => {
+                        if (!(u.inventory && u.inventory.quantity === 0)) {
+                          onhandleDelete(u.id);
+                        }
+                      }}
                     />
                   )}
                 </TableCell>

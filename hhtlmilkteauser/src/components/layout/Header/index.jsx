@@ -54,7 +54,7 @@ const sections = [
   { title: "TRANG CHỦ", url: "/home" },
   { title: "ĐỒ UỐNG PHA CHẾ", url: "/milktea" },
   { title: "ĐỒ ĂN NHÂM NHI", url: "/dessert" },
-  { title: "SẢN PHẨM", url: "/product" },
+  { title: "SẢN PHẨM ĐÓNG GÓI", url: "/product" },
   { title: "VÒNG QUAY MAY MẮN", url: "/spinner" },
   { title: "VỀ CHÚNG TÔI", url: "/about" },
 ];

@@ -87,6 +87,7 @@ const EditProduct = () => {
   const location = useLocation();
 
   const [product] = useState(location.state?.product || {});
+  const [currentPage] = useState(location.state?.currentPage || 1);
 
   const [cate, setCate] = useState(product?.category?.name || '');
   const [initialQuantity, setInitialQuantity] = useState(product?.inventory?.quantity ?? '');
@@ -150,7 +151,10 @@ const EditProduct = () => {
       
       const result = await dispatch(updateProduct(data));
       if (result) {
-        history.push("/product");
+        history.push({
+          pathname: "/product",
+          state: { currentPage }
+        });
         Notification.success("Đã cập nhật thành công!");
       }
     } catch (error) {

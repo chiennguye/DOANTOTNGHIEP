@@ -57,7 +57,10 @@ export const AuthCheckEmailAction = (email) => async (dispatch) => {
     const res = await AuthService.checkEmail(email);
     return res.data;
   } catch (err) {
-    console.log(err);
+    console.error("Check email error:", err);
+    return {
+      message: err.response?.data?.message || "Có lỗi xảy ra khi kiểm tra email"
+    };
   }
 };
 
