@@ -198,7 +198,7 @@ const Voucher = () => {
           overflowY: "auto",
         }}
       >
-        {vouchers &&
+        {vouchers && vouchers.length > 0 ? (
           vouchers.map((item, index) => {
             const remainingDays = calculateRemainingDays(item.endDate);
             return (
@@ -238,7 +238,14 @@ const Voucher = () => {
                 </Card>
               </Grid>
             );
-          })}
+          })
+        ) : (
+          <Grid item xs={12} style={{ textAlign: 'center', marginTop: '20px' }}>
+            <Typography variant="h6" color="textSecondary">
+              Bạn chưa có mã đổi điểm nào
+            </Typography>
+          </Grid>
+        )}
       </Grid>
     </React.Fragment>
   );

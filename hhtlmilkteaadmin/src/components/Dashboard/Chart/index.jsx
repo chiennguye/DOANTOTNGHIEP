@@ -79,50 +79,52 @@ const Chart = () => {
         </Grid>
       </Grid>
 
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart
-          data={
-            listRevenue && listRevenue.length > 0 
-              ? listRevenue.map((r) => createData(r.month, r.revenue))
-              : []
-          }
-          margin={{
-            top: 16,
-            right: 16,
-            bottom: 0,
-            left: 24,
-          }}
-        >
-          <XAxis dataKey="month" stroke={theme.palette.text.secondary}>
-            <Label
-              position="centerBottom"
-              style={{ textAnchor: 'middle', fill: theme.palette.text.primary }}
-            >
-              Tháng
-            </Label>
-          </XAxis>
-          <YAxis stroke={theme.palette.text.secondary}>
-            <Label
-              angle={270}
-              position="left"
-              style={{ textAnchor: 'middle', fill: theme.palette.text.primary }}
-            >
-              Doanh thu (VNĐ)
-            </Label>
-          </YAxis>
-          <Line 
-            type="monotone" 
-            dataKey="revenue" 
-            stroke={theme.palette.primary.main} 
-            dot={false}
-            animationDuration={1000}
-            animationBegin={0}
-          />
-          <Tooltip 
-            formatter={(value) => [`${value.toLocaleString()} VNĐ`, 'Doanh thu']}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div style={{ height: '400px', overflow: 'auto', padding: '20px' }}>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart
+            data={
+              listRevenue && listRevenue.length > 0 
+                ? listRevenue.map((r) => createData(r.month, r.revenue))
+                : []
+            }
+            margin={{
+              top: 16,
+              right: 16,
+              bottom: 0,
+              left: 24,
+            }}
+          >
+            <XAxis dataKey="month" stroke={theme.palette.text.secondary}>
+              <Label
+                position="centerBottom"
+                style={{ textAnchor: 'middle', fill: theme.palette.text.primary }}
+              >
+                Tháng
+              </Label>
+            </XAxis>
+            <YAxis stroke={theme.palette.text.secondary}>
+              <Label
+                angle={270}
+                position="left"
+                style={{ textAnchor: 'middle', fill: theme.palette.text.primary }}
+              >
+                Doanh thu (VNĐ)
+              </Label>
+            </YAxis>
+            <Line 
+              type="monotone" 
+              dataKey="revenue" 
+              stroke={theme.palette.primary.main} 
+              dot={false}
+              animationDuration={1000}
+              animationBegin={0}
+            />
+            <Tooltip 
+              formatter={(value) => [`${value.toLocaleString()} VNĐ`, 'Doanh thu']}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </React.Fragment >
   );
 }

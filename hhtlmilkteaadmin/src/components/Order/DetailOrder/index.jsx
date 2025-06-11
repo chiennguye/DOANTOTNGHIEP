@@ -1,5 +1,5 @@
 import { Button, Grid, makeStyles, Typography, CssBaseline, Chip, Avatar } from "@material-ui/core"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -113,17 +113,23 @@ const useStyles = makeStyles((theme) => ({
 const HistoryDetail = () => {
     const classes = useStyles();
     const location = useLocation();
-    const [order] = useState(location?.state?.order);
-    const [status, setStatus] = useState(order.status);
+    const [order, setOrder] = useState(location?.state?.order);
+    const [status, setStatus] = useState(order?.status);
     const dispatch = useDispatch();
     const history = useHistory();
     const { ratings } = useSelector((state) => state.rating);
 
+    useEffect(() => {
+        // Update local state when order changes
+        if (order) {
+            setStatus(order.status);
+        }
+    }, [order]);
 
     const handleOnDelete = (id) => {
         dispatch(OrderStatusUpdate({ id, status: 4 }));
+        setOrder(prevOrder => ({ ...prevOrder, status: 4 }));
         setStatus(4);
-        //history.push("/order/");
         Notification.success("Đã hủy thành công");
     };
 
@@ -145,15 +151,15 @@ const HistoryDetail = () => {
 
     const handleShippingStatus = (id) => {
         dispatch(OrderStatusUpdate({ id, status: 2 }));
+        setOrder(prevOrder => ({ ...prevOrder, status: 2 }));
         setStatus(2);
-        //history.push("/order/")
         Notification.success("Đã cập nhật thành công");
     };
 
     const handleCompleteStatus = (id) => {
         dispatch(OrderStatusUpdate({ id, status: 3 }));
+        setOrder(prevOrder => ({ ...prevOrder, status: 3 }));
         setStatus(3);
-        //history.push("/order/")
         Notification.success("Đã cập nhật thành công");
     };
 

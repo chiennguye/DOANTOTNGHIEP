@@ -8,7 +8,9 @@ const PUBLIC_ROUTES = [
   '/auth/signup',
   '/auth/logout',
   '/rating/list',
-  '/product'
+  '/product',
+  '/product/milktea',
+  '/category/fill'
 ];
 
 const api = axios.create({

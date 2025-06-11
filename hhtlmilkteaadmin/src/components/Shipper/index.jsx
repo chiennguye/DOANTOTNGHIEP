@@ -1,4 +1,4 @@
-import { Card, Grid, makeStyles, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Chip, Typography, TableHead } from "@material-ui/core"
+import { Card, Grid, makeStyles, Table, TableBody, TableCell, TableContainer, TableRow, Paper, Chip, Typography, TableHead, Select } from "@material-ui/core"
 import React, { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux";
 import { Pagination } from '@material-ui/lab';
@@ -49,6 +49,8 @@ const fields = [
     { id: 'userId.fullName', label: 'Khách hàng', disableSorting: false },
     { id: 'address', label: 'Địa chỉ', disableSorting: false },
     { id: 'phone', label: 'Số điện thoại', disableSorting: false },
+    { id: 'payment', label: 'Thanh toán', disableSorting: false },
+    { id: 'totalPrice', label: 'Tổng tiền', disableSorting: false },
     { id: 'status', label: 'Trạng thái', disableSorting: false },
     { id: 'actions', label: 'Thao tác', disableSorting: true },
 ];
@@ -57,7 +59,8 @@ const Shipper = () => {
     const classes = useStyles();
     const dispatch = useDispatch();
     const history = useHistory();
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
     const [valueToOrderBy, setValueToOrderBy] = useState('createdAt');
     const [valueToSortDir, setValueToSortDir] = useState('desc');
     const { listShipping, totalPagesShipping } = useSelector((state) => {
@@ -74,8 +77,8 @@ const Shipper = () => {
 
         const fetchOrders = async () => {
             try {
-                console.log("Fetching orders with params:", { page, sortField: valueToOrderBy, sortDir: valueToSortDir });
-                await dispatch(OrderListShipping({ page, sortField: valueToOrderBy, sortDir: valueToSortDir }));
+                console.log("Fetching orders with params:", { page, sortField: valueToOrderBy, sortDir: valueToSortDir, pageSize });
+                await dispatch(OrderListShipping({ page: page - 1, sortField: valueToOrderBy, sortDir: valueToSortDir, size: pageSize }));
             } catch (error) {
                 console.error("Error loading orders:", error);
                 if (error.response && error.response.status === 403) {
@@ -88,10 +91,15 @@ const Shipper = () => {
         };
 
         fetchOrders();
-    }, [dispatch, page, valueToOrderBy, valueToSortDir, history]);
+    }, [dispatch, page, valueToOrderBy, valueToSortDir, history, pageSize]);
 
     const handlePage = (event, value) => {
         setPage(value);
+    };
+
+    const handlePageSize = (e) => {
+        setPageSize(e.target.value);
+        setPage(1); // Reset về trang 1 khi thay đổi số dòng mỗi trang
     };
 
     const handleRequestSort = (property) => {
@@ -112,7 +120,7 @@ const Shipper = () => {
                             await dispatch(OrderCompleteAction(id));
                             Notification.success("Đã cập nhật thành công");
                             // Refresh the list after status update
-                            await dispatch(OrderListShipping({ page, sortField: valueToOrderBy, sortDir: valueToSortDir }));
+                            await dispatch(OrderListShipping({ page: page - 1, sortField: valueToOrderBy, sortDir: valueToSortDir, size: pageSize }));
                         } catch (error) {
                             console.error("Error updating order status:", error);
                             Notification.error("Cập nhật trạng thái thất bại");
@@ -132,8 +140,17 @@ const Shipper = () => {
                 <Grid container spacing={3}>
                     <Grid item xs={12}>
                         <Typography className={classes.title} component={'span'}>
-                            <Grid item md={3} xl={3} sm={3}>
-                                <LocalShippingOutlined />Đơn hàng cần giao
+                            <Grid container>
+                                <Grid item md={3} xl={3} sm={3}>
+                                    <LocalShippingOutlined />Đơn hàng cần giao
+                                </Grid>
+                                <Grid item md={9} xl={9} sm={9} style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                    <Select native value={pageSize} onChange={handlePageSize} style={{ marginRight: 20 }}>
+                                        <option value={5}>5</option>
+                                        <option value={10}>10</option>
+                                        <option value={15}>15</option>
+                                    </Select>
+                                </Grid>
                             </Grid>
                         </Typography>
                     </Grid>
@@ -161,6 +178,27 @@ const Shipper = () => {
                                         <TableCell>{order.userId?.fullName}</TableCell>
                                         <TableCell>{order.address}</TableCell>
                                         <TableCell>{order.phone}</TableCell>
+                                        <TableCell>
+                                            {order.payment === 1 ? (
+                                                <Typography style={{ color: "black", fontWeight: 600 }}>
+                                                    Tiền mặt
+                                                </Typography>
+                                            ) : (
+                                                <Typography style={{ color: "green", fontWeight: 600 }}>
+                                                    Trực tuyến
+                                                </Typography>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {order.payment === 1 ? (
+                                                (order.totalPrice).toLocaleString("it-IT", {
+                                                    style: "currency",
+                                                    currency: "VND",
+                                                })
+                                            ) : (
+                                                "0₫"
+                                            )}
+                                        </TableCell>
                                         <TableCell>
                                             <Chip
                                                 label="Đang giao hàng"
