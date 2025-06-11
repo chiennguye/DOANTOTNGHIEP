@@ -23,6 +23,7 @@ Cloud upload
     // Email: huypham22716@gmail.com
     // Password: Milktea@2021
 ---
+after clone from github.
 Fix: caniuse-lite  
 npm install --legacy-peer-deps
 $env:NODE_OPTIONS="--openssl-legacy-provider" ; npm start
