@@ -22,8 +22,15 @@ Mật khẩu OTP:123456
 Cloud upload
     // Email: huypham22716@gmail.com
     // Password: Milktea@2021
----
-after clone from github.
-Fix: caniuse-lite  
+------------------------------------------
+Sau khi clone từ git 
+Fix: caniuse-lite
+
+1: Chạy server tìm và mở file "ServletInitializer.java" chuột phải và chọn run java.(Trước đó cần bật database mysql XAMPP)
+
+2: Chạy lần lượt 2 câu lệnh này cho folder hhtlmilkteaadmin và hhtlmilkteauser để mở đc giao diện admin và user của project 
+
 npm install --legacy-peer-deps
 $env:NODE_OPTIONS="--openssl-legacy-provider" ; npm start
+
+
