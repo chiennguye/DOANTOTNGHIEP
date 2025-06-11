@@ -30,7 +30,8 @@ Fix: caniuse-lite
 
 2: Chạy lần lượt 2 câu lệnh này cho folder hhtlmilkteaadmin và hhtlmilkteauser để mở đc giao diện admin và user của project 
 
-npm install --legacy-peer-deps
+npm install --legacy-peer-deps 
+
 $env:NODE_OPTIONS="--openssl-legacy-provider" ; npm start
 
 
